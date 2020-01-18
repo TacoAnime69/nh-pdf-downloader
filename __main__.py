@@ -1,6 +1,5 @@
-# nhentai downloader v1.0.0
-# Author: Oliver Johnson
-# Date modified: January 17, 2020
+# nhentai downloader
+# Date modified: January 18, 2020
 
 from lxml import html
 from PIL import Image
