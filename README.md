@@ -11,11 +11,24 @@
 $ pip3 install --upgrade pip
 $ pip3 install -r requirements.txt
 ```
+#### Build
+> Use Pyinstaller to build
+```
+$ pip install pyinstaller
+$ pyinstaller __main__.py
+```
 
-## Running the program
+## Running the Script
 > Navigate to the repo directory on your local machine. Then execute the following:
 ```
 $ python3 __main__.py
+```
+
+## Running the build
+> Navigate to the dist directory ```cd dist```
+_Windows_
+```
+$ __main__.exe
 ```
 
 ## Usage
@@ -46,6 +59,7 @@ Feel free to request features.
 #### Planned Features
 - [ ] Enter multiple numbers at once (and let the script download all)
 - [ ] Create a config file that would allow the user to specify an output folder (and call it whatever they want)
+- [ ] Add CBR/CBZ support
 #### Considering
 > Features that will be added if enough people request them
 - A simple user interface
