@@ -19,6 +19,7 @@ if __name__ == "__main__":
         title, pages = ["", ""]
         try:
             title = str(tree.xpath('//div[@id="info"]/h1/text()')[0]).replace("*", '')
+            title = title.replace(":", '')
             pages, dump = str(tree.xpath('//div[@id="info"]/div/text()')[0]).split()
         except:
             print("Hentai not found.\n")
@@ -32,7 +33,8 @@ if __name__ == "__main__":
         path = os.path.join(os.getcwd(), f"temp-{title}")
         output_path = os.path.join(os.getcwd(), 'hentai')
         os.mkdir(path)
-        os.mkdir(output_path)
+        if not os.path.exists(output_path):
+            os.mkdir(output_path)
         images = []
         for p in range(int(pages)):
             print(f"Page {p+1}/{pages}...")
