@@ -46,6 +46,9 @@ Feel free to request features.
 #### Planned Features
 - [ ] Enter multiple numbers at once (and let the script download all)
 - [ ] Create a config file that would allow the user to specify an output folder (and call it whatever they want)
+#### Considering
+> Features that will be added if enough people request them
+- A simple user interface
 
 ## Contributing
 > I'm relatively new to GitHub, but please feel free to contribute. Something about fork and pull request... I'll figure it out eventually!
