@@ -6,7 +6,33 @@ from PIL import Image
 import requests, os, shutil
 
 
+def problem_char_rm(address: str, char_set: list) -> str:
+    """
+    Function to remove problematic characters of a path.
+    Any characters that causes the "windows can't create this path because it 
+    contains illegal characters" should be removed here
+
+    Parameters
+    ----------
+    address : str
+        The path string
+    char_set : list
+        A list of characters that can potentially cause issues
+
+    Returns
+    -------
+    str
+        The address with the characters removed
+    """
+    result = address
+    for char in char_set:
+        # go through each character in the set and replace with nothing
+        result = result.replace(char, "")
+    return result
+
+
 if __name__ == "__main__":
+    # Start program
     print(f"[ nhentai downloader pdf ]")
     input_prompt = "Enter number or enter 'done': "
     num_input = input(input_prompt)
@@ -18,10 +44,9 @@ if __name__ == "__main__":
         tree = html.fromstring(page.content)
         title, pages = ["", ""]
         try:
-            title = str(tree.xpath('//div[@id="info"]/h1/text()')[0]).replace("*", '')
-            title = title.replace(":", '')
-            title = title.replace("?", '')
-            title = title.replace(".", '')
+            # if the page doesn't exist, the following will throw an error
+            title = str(tree.xpath('//div[@id="info"]/h1/text()')[0])
+            title = problem_char_rm(title, ['*', ':', '?', '.'])
             pages, dump = str(tree.xpath('//div[@id="info"]/div/text()')[0]).split()
         except:
             print("Hentai not found.\n")
@@ -39,16 +64,20 @@ if __name__ == "__main__":
             os.mkdir(output_path)
         images = []
         for p in range(int(pages)):
+            # Fetch each image link of the gallery
             print(f"Page {p+1}/{pages}...")
             curr_page = f"https://nhentai.net/g/{num_input}/{p+1}/"
             page = requests.get(curr_page)
             tree = html.fromstring(page.content)
             img_link = tree.xpath('//img[@class="fit-horizontal"]/@src')
+            # Save image to temp folder
             img_file = os.path.join(f"temp-{title}", f"{p+1}.jpg")
             temp_img = open(img_file, 'wb')
             temp_img.write(requests.get(img_link[0]).content)
             temp_img.close()
+            # Add to list of images for conversion later
             images.append(Image.open(img_file))
+        print("Completed downloading.")
 
         # Convert to PDF
         print("--- Converting to PDF ---")
@@ -58,6 +87,7 @@ if __name__ == "__main__":
         first_page = converted[0]
         converted.remove(first_page)
         first_page.save(f"hentai/{title}.pdf", save_all=True, append_images=converted)
+        print("Completed conversion.")
 
         # Remove temp images
         print("--- Removing Temp Data ---")
