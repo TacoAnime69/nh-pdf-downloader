@@ -20,6 +20,8 @@ if __name__ == "__main__":
         try:
             title = str(tree.xpath('//div[@id="info"]/h1/text()')[0]).replace("*", '')
             title = title.replace(":", '')
+            title = title.replace("?", '')
+            title = title.replace(".", '')
             pages, dump = str(tree.xpath('//div[@id="info"]/div/text()')[0]).split()
         except:
             print("Hentai not found.\n")
