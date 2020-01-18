@@ -25,11 +25,17 @@ $ python3 __main__.py
 ```
 
 ## Running the build
-> Navigate to the dist directory ```cd dist```
 _Windows_
+> Navigate to the dist directory ```cd dist\__main__\```
 ```
 $ __main__.exe
 ```
+_MacOS_
+> Navigate to the dist directory ```cd dist/__main__/```
+```
+$ __main__.out
+```
+> __This might not be accurate. I'll check this later__
 
 ## Usage
 * Use the doujin ID number (which can be found in the URL; for instance, ```152969```).
@@ -69,6 +75,6 @@ Feel free to request features.
 
 ## Support
 Feel free to reach out if you have any questions!
-> If you want to report a bug, please read __Bugs Known__ and only use email.
+> If you want to report a bug, please read __Known Bugs__ and only use email.
 - Email: hentai.boi@outlook.com
 - Twitter at [@TacoAnime69](https://twitter.com/TacoAnime69)
