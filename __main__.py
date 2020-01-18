@@ -31,7 +31,9 @@ if __name__ == "__main__":
         # Begin download images
         print("--- Downloading ---")
         path = os.path.join(os.getcwd(), f"temp-{title}")
+        output_path = os.path.join(os.getcwd(), 'hentai')
         os.mkdir(path)
+        os.mkdir(output_path)
         images = []
         for p in range(int(pages)):
             print(f"Page {p+1}/{pages}...")
