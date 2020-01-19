@@ -30,7 +30,7 @@ _Windows_
 ```
 $ __main__.exe
 ```
-_MacOS_
+_MacOS or Linux_
 > Navigate to the dist directory ```cd dist/__main__/```
 ```
 $ __main__.out
@@ -63,12 +63,14 @@ When reporting a bug, please include the following information:
 ## Feature Request and Planned Features
 Feel free to request features. 
 #### Planned Features
-- [ ] Enter multiple numbers at once (and let the script download all)
+- [x] Enter multiple numbers at once (and let the script download all)
 - [ ] Create a config file that would allow the user to specify an output folder (and call it whatever they want)
 - [ ] Add CBR/CBZ support
+- [ ] Add config for automatically putting downloaded PDF into a subfolder named after its parody, author, or language.
 #### Considering
 > Features that will be added if enough people request them
 - A simple user interface
+- A Google Chrome / Firefox / Edge extension that would connect the script and direct download from the page
 
 ## Contributing
 > I'm relatively new to GitHub, but please feel free to contribute. Something about fork and pull request... I'll figure it out eventually!
