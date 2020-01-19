@@ -30,7 +30,7 @@ _Windows_
 ```
 $ __main__.exe
 ```
-_MacOS_
+_MacOS or Linux_
 > Navigate to the dist directory ```cd dist/__main__/```
 ```
 $ __main__.out
@@ -69,6 +69,7 @@ Feel free to request features.
 #### Considering
 > Features that will be added if enough people request them
 - A simple user interface
+- A Google Chrome / Firefox / Edge extension that would connect the script and direct download from the page
 
 ## Contributing
 > I'm relatively new to GitHub, but please feel free to contribute. Something about fork and pull request... I'll figure it out eventually!
