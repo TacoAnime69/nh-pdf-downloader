@@ -3,7 +3,7 @@
 
 from lxml import html
 from PIL import Image
-import requests, os, shutil
+import requests, os, shutil, sys
 
 
 def problem_char_rm(address: str, char_set: list) -> str:
@@ -47,7 +47,7 @@ if __name__ == "__main__":
             try:
                 # if the page doesn't exist, the following will throw an error
                 title = str(tree.xpath('//div[@id="info"]/h1/text()')[0])
-                title = problem_char_rm(title, ['*', ':', '?', '.'])
+                title = problem_char_rm(title, ['*', ':', '?', '.', '"', '|'])
                 pages, dump = str(tree.xpath('//div[@id="info"]/div/text()')[0]).split()
             except:
                 print("Hentai not found.\n")
@@ -66,7 +66,7 @@ if __name__ == "__main__":
             images = []
             for p in range(int(pages)):
                 # Fetch each image link of the gallery
-                print(f"Page {p+1}/{pages}...")
+                sys.stdout.write("\rDownloading page {}/{}...".format(p+1, pages))
                 curr_page = f"https://nhentai.net/g/{_num_}/{p+1}/"
                 page = requests.get(curr_page)
                 tree = html.fromstring(page.content)
@@ -78,6 +78,7 @@ if __name__ == "__main__":
                 temp_img.close()
                 # Add to list of images for conversion later
                 images.append(Image.open(img_file))
+                sys.stdout.flush()
             print("Completed downloading.")
 
             # Convert to PDF
