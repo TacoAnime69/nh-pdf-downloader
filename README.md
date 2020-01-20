@@ -12,7 +12,7 @@ $ pip3 install --upgrade pip
 $ pip3 install -r requirements.txt
 ```
 #### Build
-> Use Pyinstaller to build
+> Use Pyinstaller and Anaconda to build
 ```
 $ pip install pyinstaller
 $ pyinstaller __main__.py
@@ -38,8 +38,8 @@ $ __main__.out
 > __This might not be accurate. I'll check this later__
 
 ## Usage
-* Use the doujin ID number (which can be found in the URL; for instance, ```152969```).
-* Enter that number when prompted.
+* Use a (or multiple) doujin ID number(s) (which can be found in the URL; for instance, ```152969```).
+* Enter those number when prompted (if multiple, separate by space).
 * The program will download and covert all images into a pdf and save it in a subfolder where the python script is.
 ```
 - nh-pdf-downloader/
@@ -51,19 +51,10 @@ $ __main__.out
 > _Note: as the images are being downloaded, a temporary folder is created to store the images. this folder will be deleted upon completion._
 * When you are done, enter ```done``` to exit script
 
-## Bug Reporting
-When reporting a bug, please include the following information:
-- Your OS and Python Version
-- What did you enter (even if it's just the number, please provide that. Don't worry, I won't judge)
-- How did you enter it (via typing, copy-paste, etc.)
-- (_Optional_) A screenshot of your terminal/cmd
-#### Known Bugs
-> Currently, no bugs have been reported. 1/18/19
-
 ## Feature Request and Planned Features
 Feel free to request features. 
 #### Planned Features
-- [x] Enter multiple numbers at once (and let the script download all)
+- [x] ~Enter multiple numbers at once (and let the script download all)~
 - [ ] Create a config file that would allow the user to specify an output folder (and call it whatever they want)
 - [ ] Add CBR/CBZ support
 - [ ] Add config for automatically putting downloaded PDF into a subfolder named after its parody, author, or language.
