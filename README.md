@@ -12,7 +12,7 @@ $ pip3 install --upgrade pip
 $ pip3 install -r requirements.txt
 ```
 #### Build
-> Use Pyinstaller to build
+> Use Pyinstaller and Anaconda to build
 ```
 $ pip install pyinstaller
 $ pyinstaller __main__.py
@@ -38,8 +38,8 @@ $ __main__.out
 > __This might not be accurate. I'll check this later__
 
 ## Usage
-* Use the doujin ID number (which can be found in the URL; for instance, ```152969```).
-* Enter that number when prompted.
+* Use a (or multiple) doujin ID number(s) (which can be found in the URL; for instance, ```152969```).
+* Enter those number when prompted (if multiple, separate by space).
 * The program will download and covert all images into a pdf and save it in a subfolder where the python script is.
 ```
 - nh-pdf-downloader/
@@ -63,7 +63,7 @@ When reporting a bug, please include the following information:
 ## Feature Request and Planned Features
 Feel free to request features. 
 #### Planned Features
-- [x] Enter multiple numbers at once (and let the script download all)
+- [x] ~Enter multiple numbers at once (and let the script download all)~
 - [ ] Create a config file that would allow the user to specify an output folder (and call it whatever they want)
 - [ ] Add CBR/CBZ support
 - [ ] Add config for automatically putting downloaded PDF into a subfolder named after its parody, author, or language.
