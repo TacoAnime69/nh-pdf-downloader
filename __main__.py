@@ -47,7 +47,7 @@ if __name__ == "__main__":
             try:
                 # if the page doesn't exist, the following will throw an error
                 title = str(tree.xpath('//div[@id="info"]/h1/text()')[0])
-                title = problem_char_rm(title, ['*', ':', '?', '.', '"', '|'])
+                title = problem_char_rm(title, ['*', ':', '?', '.', '"', '|', '/', '\\'])
                 pages, dump = str(tree.xpath('//div[@id="info"]/div/text()')[0]).split()
             except:
                 print("Hentai not found.\n")
@@ -79,7 +79,7 @@ if __name__ == "__main__":
                 # Add to list of images for conversion later
                 images.append(Image.open(img_file))
                 sys.stdout.flush()
-            print("Completed downloading.")
+            print("Done.")
 
             # Convert to PDF
             print("--- Converting to PDF ---")
