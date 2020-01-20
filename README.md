@@ -51,15 +51,6 @@ $ __main__.out
 > _Note: as the images are being downloaded, a temporary folder is created to store the images. this folder will be deleted upon completion._
 * When you are done, enter ```done``` to exit script
 
-## Bug Reporting
-When reporting a bug, please include the following information:
-- Your OS and Python Version
-- What did you enter (even if it's just the number, please provide that. Don't worry, I won't judge)
-- How did you enter it (via typing, copy-paste, etc.)
-- (_Optional_) A screenshot of your terminal/cmd
-#### Known Bugs
-> Currently, no bugs have been reported. 1/18/19
-
 ## Feature Request and Planned Features
 Feel free to request features. 
 #### Planned Features
