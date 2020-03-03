@@ -35,7 +35,6 @@ _MacOS or Linux_
 ```
 $ __main__.out
 ```
-> __This might not be accurate. I'll check this later__
 
 ## Usage
 * Use a (or multiple) doujin ID number(s) (which can be found in the URL; for instance, ```152969```).
@@ -64,7 +63,7 @@ Feel free to request features.
 - A Google Chrome / Firefox / Edge extension that would connect the script and direct download from the page
 
 ## Contributing
-> I'm relatively new to GitHub, but please feel free to contribute. Something about fork and pull request... I'll figure it out eventually!
+You are welcome to contribute to this as you'd like!
 
 ## Support
 Feel free to reach out if you have any questions!
