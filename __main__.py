@@ -44,7 +44,7 @@ if __name__ == "__main__":
         else:
             for _num_ in num_input:
                 # Get doujin info
-                print(f"🟧 Fetching [{_num_} : {currPos} / {len(num_input)}] 🟧")
+                print(f"🟠 Fetching [{_num_} : {currPos} / {len(num_input)}]...")
                 gallery_link = f"https://nhentai.net/g/{_num_}/"
                 page = requests.get(gallery_link)
                 tree = html.fromstring(page.content)
@@ -62,7 +62,7 @@ if __name__ == "__main__":
                 print(f"Pages: {pages}")
 
                 # Begin download images
-                print("🟨 Downloading 🟨")
+                print("🟡 Downloading...")
                 path = os.path.join(os.getcwd(), f"temp-{title}")
                 output_path = os.path.join(os.getcwd(), 'hentai')
                 os.mkdir(path)
@@ -87,7 +87,7 @@ if __name__ == "__main__":
                 print("Done ✅")
 
                 # Convert to PDF
-                print("🟦 Converting to PDF 🟦")
+                print("🔵 Converting to PDF...")
                 converted = []
                 for img in images:
                     converted.append(img.convert('RGB'))
@@ -97,7 +97,7 @@ if __name__ == "__main__":
                 print("Completed conversion ✅")
 
                 # Remove temp images
-                print("🟪 Removing Temp Data 🟪")
+                print("🟣 Removing Temp Data...")
                 shutil.rmtree(path)
                 print("Done ✅\n")
 
