@@ -60,7 +60,7 @@ if __name__ == "__main__":
                     break
                 print(f"Title: {title}")
                 print(f"Pages: {pages}")
-
+                
                 # Check to see if file exist
                 final_path = f"hentai/{title}.pdf"
                 if os.path.exists(final_path):
@@ -69,11 +69,22 @@ if __name__ == "__main__":
                 
                 # Check if file path is too long
                 path = os.path.join(os.getcwd(), f"temp-{title}")
-                # new_name = title
-                while len(path) > 200:
-                    title = input("File path is too long! Please enter new file name: ")
-                    path = os.path.join(os.getcwd(), f"temp-{title}")
-                    final_path = f"hentai/{title}.pdf"
+                valid_len = len(path) < 200
+                valid_name = True
+                while not valid_len or not valid_name:
+                    while not valid_len:
+                        title = input("File path is too long! Please enter new file name: ")
+                        title = problem_char_rm(title, ['*', ':', '?', '.', '"', '|', '/', '\\'])
+                        path = os.path.join(os.getcwd(), f"temp-{title}")
+                        final_path = f"hentai/{title}.pdf"
+                        valid_len = len(path) < 200
+                        valid_name = not os.path.exists(final_path)
+                    while not valid_name:
+                        title = input("File name already exist! Please enter another name: ")
+                        title = problem_char_rm(title, ['*', ':', '?', '.', '"', '|', '/', '\\'])
+                        path = os.path.join(os.getcwd(), f"temp-{title}")
+                        final_path = f"hentai/{title}.pdf"
+                        valid_name = not os.path.exists(final_path)
 
                 # Begin download images
                 print("[ Downloading ]")
