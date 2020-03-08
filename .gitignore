@@ -4,4 +4,4 @@
 /__pycache__
 __main__.spec
 /temp*
-.DS_Store
+.*
