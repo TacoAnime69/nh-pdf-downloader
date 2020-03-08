@@ -37,14 +37,15 @@ if __name__ == "__main__":
     print(f"[ nhentai downloader pdf ]\n")
     input_prompt = "Enter number or enter 'done': "
     num_input = input(input_prompt).split()
-    currPos = 1
     while num_input[0] != "done":
         if (num_input[0] == "open"):
             # TODO open explorer / files on hentai folder
             pass
         else:
+            currPos = 0
             for _num_ in num_input:
                 # Get doujin info
+                currPos += 1
                 print(f"[ Fetching [{_num_} : {currPos} / {len(num_input)}]...]")
                 gallery_link = f"https://nhentai.net/g/{_num_}/"
                 page = requests.get(gallery_link)
@@ -57,7 +58,7 @@ if __name__ == "__main__":
                     pages, dump = str(tree.xpath('//div[@id="info"]/div/text()')[0]).split()
                 except:
                     print("Hentai not found.\n")
-                    break
+                    continue
                 print(f"Title: {title}")
                 print(f"Pages: {pages}")
                 
@@ -65,7 +66,7 @@ if __name__ == "__main__":
                 final_path = f"hentai/{title}.pdf"
                 if os.path.exists(final_path):
                     print("File already exist. Aborting Download.\n")
-                    break
+                    continue
                 
                 # Check if file path is too long
                 path = os.path.join(os.getcwd(), f"temp-{title}")
