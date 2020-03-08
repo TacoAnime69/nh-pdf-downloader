@@ -3,6 +3,7 @@
 
 from lxml import html
 from PIL import Image
+from sys import platform
 import requests, os, shutil, sys
 
 
@@ -89,7 +90,10 @@ if __name__ == "__main__":
                     # Add to list of images for conversion later
                     images.append(Image.open(img_file))
                     sys.stdout.flush()
-                print("Done ✅")
+                if platform == "win32":
+                    print("Done!")
+                else:
+                    print("Done ✅")
 
                 # Convert to PDF
                 print("[ Converting to PDF ]")
@@ -99,12 +103,19 @@ if __name__ == "__main__":
                 first_page = converted[0]
                 converted.remove(first_page)
                 first_page.save(final_path, save_all=True, append_images=converted)
-                print("Completed conversion ✅")
+                
+                if platform == "win32":
+                    print("Completed conversion!")
+                else:
+                    print("Completed conversion ✅")
 
                 # Remove temp images
                 print("[ Removing Temp Data ]")
                 shutil.rmtree(path)
-                print("Done ✅\n")
+                if platform == "win32":
+                    print("Done!\n")
+                else:
+                    print("Done ✅\n")
 
         # Ask for more input
         num_input = input(input_prompt).split()
