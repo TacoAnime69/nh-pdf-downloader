@@ -56,11 +56,16 @@ if __name__ == "__main__":
                     pages, dump = str(tree.xpath('//div[@id="info"]/div/text()')[0]).split()
                 except:
                     print("Hentai not found.\n")
-                    # num_input = input(input_prompt)
                     break
                 print(f"Title: {title}")
                 print(f"Pages: {pages}")
 
+                # Check to see if file exist
+                final_path = f"hentai/{title}.pdf"
+                if os.path.exists(final_path):
+                    print("File already exist. Aborting Download.\n")
+                    break
+                
                 # Begin download images
                 print("🟡 Downloading...")
                 path = os.path.join(os.getcwd(), f"temp-{title}")
@@ -93,7 +98,7 @@ if __name__ == "__main__":
                     converted.append(img.convert('RGB'))
                 first_page = converted[0]
                 converted.remove(first_page)
-                first_page.save(f"hentai/{title}.pdf", save_all=True, append_images=converted)
+                first_page.save(final_path, save_all=True, append_images=converted)
                 print("Completed conversion ✅")
 
                 # Remove temp images
