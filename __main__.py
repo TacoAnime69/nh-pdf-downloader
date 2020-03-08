@@ -67,9 +67,16 @@ if __name__ == "__main__":
                     print("File already exist. Aborting Download.\n")
                     break
                 
+                # Check if file path is too long
+                path = os.path.join(os.getcwd(), f"temp-{title}")
+                # new_name = title
+                while len(path) > 200:
+                    title = input("File path is too long! Please enter new file name: ")
+                    path = os.path.join(os.getcwd(), f"temp-{title}")
+                    final_path = f"hentai/{title}.pdf"
+
                 # Begin download images
                 print("[ Downloading ]")
-                path = os.path.join(os.getcwd(), f"temp-{title}")
                 output_path = os.path.join(os.getcwd(), 'hentai')
                 os.mkdir(path)
                 if not os.path.exists(output_path):
