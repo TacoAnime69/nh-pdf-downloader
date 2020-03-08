@@ -58,7 +58,7 @@ if __name__ == "__main__":
                     pages, dump = str(tree.xpath('//div[@id="info"]/div/text()')[0]).split()
                 except:
                     print("Hentai not found.\n")
-                    break
+                    continue
                 print(f"Title: {title}")
                 print(f"Pages: {pages}")
                 
@@ -66,7 +66,7 @@ if __name__ == "__main__":
                 final_path = f"hentai/{title}.pdf"
                 if os.path.exists(final_path):
                     print("File already exist. Aborting Download.\n")
-                    break
+                    continue
                 
                 # Check if file path is too long
                 path = os.path.join(os.getcwd(), f"temp-{title}")
