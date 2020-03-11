@@ -37,6 +37,7 @@ if __name__ == "__main__":
     print(f"[ nhentai downloader pdf ]\n")
     input_prompt = "Enter number or enter 'done': "
     num_input = input(input_prompt).split()
+    problem_char_set = ['*', ':', '?', '.', '"', '|', '/', '\\']
     while num_input[0] != "done":
         if (num_input[0] == "open"):
             # TODO open explorer / files on hentai folder
@@ -54,10 +55,10 @@ if __name__ == "__main__":
                 try:
                     # if the page doesn't exist, the following will throw an error
                     title = str(tree.xpath('//div[@id="info"]/h1/text()')[0])
-                    title = problem_char_rm(title, ['*', ':', '?', '.', '"', '|', '/', '\\'])
+                    title = problem_char_rm(title, problem_char_set)
                     pages, dump = str(tree.xpath('//div[@id="info"]/div/text()')[0]).split()
                 except:
-                    print("Hentai not found.\n")
+                    print("ERROR - Hentai not found. Skipped\n")
                     continue
                 print(f"Title: {title}")
                 print(f"Pages: {pages}")
@@ -65,7 +66,7 @@ if __name__ == "__main__":
                 # Check to see if file exist
                 final_path = f"hentai/{title}.pdf"
                 if os.path.exists(final_path):
-                    print("File already exist. Aborting Download.\n")
+                    print("ERROR - File already exist. Skipped.\n")
                     continue
                 
                 # Check if file path is too long
@@ -74,15 +75,15 @@ if __name__ == "__main__":
                 valid_name = True
                 while not valid_len or not valid_name:
                     while not valid_len:
-                        title = input("File path is too long! Please enter new file name: ")
-                        title = problem_char_rm(title, ['*', ':', '?', '.', '"', '|', '/', '\\'])
+                        title = input("⚠️   WARNING - File path is too long! Please enter new file name: ")
+                        title = problem_char_rm(title, problem_char_set)
                         path = os.path.join(os.getcwd(), f"temp-{title}")
                         final_path = f"hentai/{title}.pdf"
                         valid_len = len(path) < 200
                         valid_name = not os.path.exists(final_path)
                     while not valid_name:
-                        title = input("File name already exist! Please enter another name: ")
-                        title = problem_char_rm(title, ['*', ':', '?', '.', '"', '|', '/', '\\'])
+                        title = input("⚠️   WARNING - File name already exist! Please enter another name: ")
+                        title = problem_char_rm(title, problem_char_set)
                         path = os.path.join(os.getcwd(), f"temp-{title}")
                         final_path = f"hentai/{title}.pdf"
                         valid_name = not os.path.exists(final_path)
@@ -109,10 +110,7 @@ if __name__ == "__main__":
                     # Add to list of images for conversion later
                     images.append(Image.open(img_file))
                     sys.stdout.flush()
-                if platform == "win32":
-                    print("Done!")
-                else:
-                    print("Done ✅")
+                print("Done!")
 
                 # Convert to PDF
                 print("[ Converting to PDF ]")
@@ -122,11 +120,7 @@ if __name__ == "__main__":
                 first_page = converted[0]
                 converted.remove(first_page)
                 first_page.save(final_path, save_all=True, append_images=converted)
-                
-                if platform == "win32":
-                    print("Completed conversion!")
-                else:
-                    print("Completed conversion ✅")
+                print("Completed conversion!")
 
                 # Remove temp images
                 print("[ Removing Temp Data ]")
