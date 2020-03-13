@@ -35,7 +35,7 @@ def problem_char_rm(address: str, char_set: list) -> str:
 if __name__ == "__main__":
     # Start program
     print(f"[ nhentai downloader pdf ]\n")
-    input_prompt = "Enter number or enter 'done': "
+    input_prompt = "Enter number or 'done': "
     num_input = input(input_prompt).split()
     problem_char_set = ['*', ':', '?', '.', '"', '|', '/', '\\']
     while num_input[0] != "done":
@@ -43,6 +43,8 @@ if __name__ == "__main__":
             # TODO open explorer / files on hentai folder
             if platform == "darwin":
                 os.system('open hentai/')
+            elif platform == "win32":
+                pass
             print()
         else:
             currPos = 0
