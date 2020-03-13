@@ -47,7 +47,7 @@ if __name__ == "__main__":
             for _num_ in num_input:
                 # Get doujin info
                 currPos += 1
-                print(f"[ Fetching [{_num_} : {currPos} / {len(num_input)}]...]")
+                print(f"[ Fetching {_num_} ({currPos} / {len(num_input)}) ]")
                 gallery_link = f"https://nhentai.net/g/{_num_}/"
                 page = requests.get(gallery_link)
                 tree = html.fromstring(page.content)
