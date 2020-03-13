@@ -41,7 +41,9 @@ if __name__ == "__main__":
     while num_input[0] != "done":
         if (num_input[0] == "open"):
             # TODO open explorer / files on hentai folder
-            pass
+            if platform == "darwin":
+                os.system('open hentai/')
+            print()
         else:
             currPos = 0
             for _num_ in num_input:
