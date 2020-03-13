@@ -46,6 +46,39 @@ if __name__ == "__main__":
             elif platform == "win32":
                 pass
             print()
+        elif (num_input[0] == "help"):
+            message = f"""
+            nhentai downloader pdf - help
+
+            [ Prompt Usage ]
+
+            [ To Download ]
+            - Enter in the ID number(s) of the doujin you wish to download.
+            Note: Doujins musct come from nhentai website. 
+                  This script will not work with any other site.
+            Hint: ID numbers can be found in the URL. 
+                  https://nhentai.net/g/[id number]/
+            - To create a queue (multiple downloads) enter all the ID numbers
+            Note: The order of the ID's does not matter.
+              on the same input field separated by a space
+            - Hit enter to begin downloading
+            Note: If a doujin has the same name as an already downloaded item,
+                  then it will skip that download.
+                  If a doujin has a name that is too long, a warning will
+                  appear and prompt to enter a new name.
+            Usage:
+            {input_prompt} [ID number(s) ... ]
+            Example:
+            {input_prompt} 111111 222222 333333
+
+            [ Other Options ]
+            When prompted, you may enter one of the other commands:
+            - done : this will end execution of the program
+            - help : this will display this text
+            - open : this will open finder/files/file explorer to the
+                     default download folder
+            """
+            print(message)
         else:
             currPos = 0
             for _num_ in num_input:
