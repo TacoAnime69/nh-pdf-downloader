@@ -4,50 +4,130 @@
 from lxml import html
 from PIL import Image
 from sys import platform
-import requests, os, shutil, sys
+import requests
+import os
+import shutil
+import sys
 
 
-def problem_char_rm(address: str, char_set: list) -> str:
-    """
-    Function to remove problematic characters of a path.
-    Any characters that causes the "windows can't create this path because it 
-    contains illegal characters" should be removed here
+class DownloadHandler:
+    def __init__(self, id_num):
+        self.id_num = id_num
+        page = requests.get(f'https://nhentai.net/g/{self.id_num}/')
+        tree = html.fromstring(page.content)
+        try:
+            # if the page doesn't exist, the following will throw an error
+            title = str(tree.xpath('//div[@id="info"]/h1/text()')[0])
+            self._title = title
+            self._pages = int(
+                str(tree.xpath('//div[@id="info"]/div/text()')[0]).split()[0])
+            self._valid = True
+        except:
+            self._valid = False
+        pass
 
-    Parameters
-    ----------
-    address : str
-        The path string
-    char_set : list
-        A list of characters that can potentially cause issues
+    def save_image(self, at_page, destination):
+        curr_page = f"https://nhentai.net/g/{self.id_num}/{at_page}/"
+        page = requests.get(curr_page)
+        tree = html.fromstring(page.content)
+        img_link = tree.xpath(
+            '//img[@class="fit-horizontal"]/@src')
+        # Save image to temp folder
+        img_file = os.path.join(destination, f"{at_page}.jpg")
+        temp_img = open(img_file, 'wb')
+        temp_img.write(requests.get(img_link[0]).content)
+        temp_img.close()
+        return img_file
 
-    Returns
-    -------
-    str
-        The address with the characters removed
-    """
-    result = address
-    for char in char_set:
-        # go through each character in the set and replace with nothing
-        result = result.replace(char, "")
-    return result
+    @property
+    def title(self):
+        return self._title
+
+    @property
+    def valid(self):
+        return self._valid
+
+    @property
+    def pages(self):
+        return self._pages
 
 
-if __name__ == "__main__":
-    # Start program
-    print(f"[ nhentai downloader pdf ]\n")
-    input_prompt = "Enter number or 'done': "
-    num_input = input(input_prompt).split()
-    problem_char_set = ['*', ':', '?', '.', '"', '|', '/', '\\']
-    while num_input[0] != "done":
-        if (num_input[0] == "open"):
-            # TODO open explorer / files on hentai folder
-            if platform == "darwin":
-                os.system('open hentai/')
-            elif platform == "win32":
-                pass
-            print()
-        elif (num_input[0] == "help"):
-            message = f"""
+class PDFHandler:
+    def save_to_pdf(self, images, output_path):
+        converted = []
+        for img in images:
+            converted.append(img.convert('RGB'))
+        first_page = converted[0]
+        converted.remove(first_page)
+        first_page.save(output_path, save_all=True,
+                        append_images=converted)
+
+
+class PathHandler:
+    def __init__(self, folder_path: str, temp_path: str, name: str, id_num: int):
+        self.path_dir = folder_path
+        self.bad_chars = ['*', ':', '?', '.', '"', '|', '/', '\\']
+        self.file_name = self.__problem_char_rm(name)
+        # print(self.__set_path())
+        self._final_path = self.__set_path()
+        self._temp_path = os.path.join(temp_path, f'temp-{id_num}')
+
+    @property
+    def valid(self):
+        return len(self._final_path) < 200
+    
+    @property
+    def unique(self):
+        return not os.path.exists(self._final_path)
+    
+    @property
+    def temp_path(self):
+        return self._temp_path
+    
+    @property
+    def final_path(self):
+        return self._final_path
+
+    def rename_path(self, name):
+        self.file_name = self.__problem_char_rm(name)
+        self._final_path = self.__set_path()
+
+    def __set_path(self):
+        return os.path.join(f'{self.path_dir}', f'{self.file_name}.pdf')
+
+    def __problem_char_rm(self, address: str) -> str:
+        """
+        Function to remove problematic characters of a path.
+        Any characters that causes the "windows can't create this path because it 
+        contains illegal characters" should be removed here
+
+        Parameters
+        ----------
+        address : str
+            The path string
+
+        Returns
+        -------
+        str
+            The address with the characters removed
+        """
+        result = address
+        for char in self.bad_chars:
+            # go through each character in the set and replace with nothing
+            result = result.replace(char, "")
+        return result
+
+
+
+def open_folder(folder_path: str):
+    if platform == "darwin":
+        os.system(f'open {folder_path}/')
+    elif platform == "win32":
+        os.system(f'start {folder_path}\\')
+
+
+def show_help():
+    message = f"""
             nhentai downloader pdf - help
 
             [ Prompt Usage ]
@@ -67,9 +147,9 @@ if __name__ == "__main__":
                   If a doujin has a name that is too long, a warning will
                   appear and prompt to enter a new name.
             Usage:
-            {input_prompt} [ID number(s) ... ]
+            Enter number(s): [ID number(s) ... ]
             Example:
-            {input_prompt} 111111 222222 333333
+            Enter number(s): 111111 222222 333333
 
             [ Other Options ]
             When prompted, you may enter one of the other commands:
@@ -78,95 +158,99 @@ if __name__ == "__main__":
             - open : this will open finder/files/file explorer to the
                      default download folder
             """
-            print(message)
+    print(message)
+
+
+def process_queue(dl_queue, output_folder, temp_folder):
+    for currPos, id_num in enumerate(dl_queue, 1):
+        # Get doujin info
+        print(f'[ Fetching {id_num} ({currPos} / {len(dl_queue)}) ]')
+        dl_handler = DownloadHandler(id_num)
+        if not dl_handler.valid:
+            print('ERROR - Doujin not found. Skipped\n')
+            continue
+        # Check to see if file exist
+        path_handler = PathHandler(output_folder, temp_folder, dl_handler.title, id_num)
+        if not path_handler.unique:
+            print("ERROR - File already exist. Skipped.\n")
+            continue
+        # Check to see if path is too long
+        while not path_handler.valid or not path_handler.unique:
+            while not path_handler.valid:
+                title = input(
+                    "⚠️   WARNING - File path is too long! Please enter new file name: ")
+                path_handler.rename_path(title)
+            while not path_handler.unique:
+                title = input(
+                    "⚠️   WARNING - File name already exist! Please enter another name: ")
+                path_handler.rename_path(title)
+
+        print(f'Title: {dl_handler.title}')
+        print(f'Pages: {dl_handler.pages}')
+        
+        # Begin download images
+        print("[ Downloading ]")
+        if not os.path.exists(output_folder):
+            os.mkdir(output_folder)
+        if not os.path.exists(temp_folder):
+            os.mkdir(temp_folder)
+        if os.path.exists(path_handler.temp_path):
+            shutil.rmtree(path_handler.temp_path)
+        os.mkdir(path_handler.temp_path)
+        images = []
+        for p in range(dl_handler.pages):
+            # Fetch each image link of the gallery
+            sys.stdout.write(
+                "\rDownloading page {}/{}...".format(p+1, dl_handler.pages))
+            img_file = dl_handler.save_image(p+1, path_handler.temp_path)
+            # Add to list of images for conversion later
+            images.append(Image.open(img_file))
+            sys.stdout.flush()
+        print("Done!")
+
+        # Convert to PDF
+        print("[ Converting to PDF ]")
+        pdf_handler = PDFHandler()
+        pdf_handler.save_to_pdf(images, path_handler.final_path)
+        print("Completed conversion!")
+
+        # Remove temp images
+        print("[ Removing Temp Data ]")
+        shutil.rmtree(temp_folder)
+        if platform == "win32":
+            print("Done!\n")
         else:
-            currPos = 0
-            for _num_ in num_input:
-                # Get doujin info
-                currPos += 1
-                print(f"[ Fetching {_num_} ({currPos} / {len(num_input)}) ]")
-                gallery_link = f"https://nhentai.net/g/{_num_}/"
-                page = requests.get(gallery_link)
-                tree = html.fromstring(page.content)
-                title, pages = ["", ""]
-                try:
-                    # if the page doesn't exist, the following will throw an error
-                    title = str(tree.xpath('//div[@id="info"]/h1/text()')[0])
-                    title = problem_char_rm(title, problem_char_set)
-                    pages, dump = str(tree.xpath('//div[@id="info"]/div/text()')[0]).split()
-                except:
-                    print("ERROR - Hentai not found. Skipped\n")
-                    continue
-                print(f"Title: {title}")
-                print(f"Pages: {pages}")
-                
-                # Check to see if file exist
-                final_path = f"hentai/{title}.pdf"
-                if os.path.exists(final_path):
-                    print("ERROR - File already exist. Skipped.\n")
-                    continue
-                
-                # Check if file path is too long
-                path = os.path.join(os.getcwd(), f"temp-{title}")
-                valid_len = len(path) < 200
-                valid_name = True
-                while not valid_len or not valid_name:
-                    while not valid_len:
-                        title = input("⚠️   WARNING - File path is too long! Please enter new file name: ")
-                        title = problem_char_rm(title, problem_char_set)
-                        path = os.path.join(os.getcwd(), f"temp-{title}")
-                        final_path = f"hentai/{title}.pdf"
-                        valid_len = len(path) < 200
-                        valid_name = not os.path.exists(final_path)
-                    while not valid_name:
-                        title = input("⚠️   WARNING - File name already exist! Please enter another name: ")
-                        title = problem_char_rm(title, problem_char_set)
-                        path = os.path.join(os.getcwd(), f"temp-{title}")
-                        final_path = f"hentai/{title}.pdf"
-                        valid_name = not os.path.exists(final_path)
+            print("Done ✅\n")
+    pass
 
-                # Begin download images
-                print("[ Downloading ]")
-                output_path = os.path.join(os.getcwd(), 'hentai')
-                os.mkdir(path)
-                if not os.path.exists(output_path):
-                    os.mkdir(output_path)
-                images = []
-                for p in range(int(pages)):
-                    # Fetch each image link of the gallery
-                    sys.stdout.write("\rDownloading page {}/{}...".format(p+1, pages))
-                    curr_page = f"https://nhentai.net/g/{_num_}/{p+1}/"
-                    page = requests.get(curr_page)
-                    tree = html.fromstring(page.content)
-                    img_link = tree.xpath('//img[@class="fit-horizontal"]/@src')
-                    # Save image to temp folder
-                    img_file = os.path.join(f"temp-{title}", f"{p+1}.jpg")
-                    temp_img = open(img_file, 'wb')
-                    temp_img.write(requests.get(img_link[0]).content)
-                    temp_img.close()
-                    # Add to list of images for conversion later
-                    images.append(Image.open(img_file))
-                    sys.stdout.flush()
-                print("Done!")
 
-                # Convert to PDF
-                print("[ Converting to PDF ]")
-                converted = []
-                for img in images:
-                    converted.append(img.convert('RGB'))
-                first_page = converted[0]
-                converted.remove(first_page)
-                first_page.save(final_path, save_all=True, append_images=converted)
-                print("Completed conversion!")
 
-                # Remove temp images
-                print("[ Removing Temp Data ]")
-                shutil.rmtree(path)
-                if platform == "win32":
-                    print("Done!\n")
-                else:
-                    print("Done ✅\n")
-
+def get_command(output_folder, temp_folder):
+    input_prompt = "Enter number(s): "
+    num_input = input(input_prompt).split()
+    while num_input[0] != "done":
+        if (num_input[0] == "open"):
+            open_folder(output_folder)
+            print()
+        elif (num_input[0] == "help"):
+            show_help()
+        else:
+            process_queue(num_input, output_folder, temp_folder)
         # Ask for more input
         num_input = input(input_prompt).split()
-    print("---Program End---")
+
+
+if __name__ == "__main__":
+    # Start program
+    print(f"[ nhentai downloader pdf ]\n")
+    print('Enter \'help\' to see usage and commands\n')
+    output_folder = os.path.join(os.getcwd(), 'hentai')
+    all_temp = os.path.join(output_folder, 'temp')
+    try:
+        get_command(output_folder, all_temp)
+    except KeyboardInterrupt:
+        print('\n\nStopping all queues (if any).')
+    if os.path.exists(all_temp):
+        shutil.rmtree(all_temp)
+
+    print("\n---Program End---")
