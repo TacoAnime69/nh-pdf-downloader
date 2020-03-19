@@ -169,6 +169,9 @@ def process_queue(dl_queue, output_folder, temp_folder):
         if not dl_handler.valid:
             print('ERROR - Doujin not found. Skipped\n')
             continue
+        print(f'Title: {dl_handler.title}')
+        print(f'Pages: {dl_handler.pages}')
+
         # Check to see if file exist
         path_handler = PathHandler(output_folder, temp_folder, dl_handler.title, id_num)
         if not path_handler.unique:
@@ -184,9 +187,6 @@ def process_queue(dl_queue, output_folder, temp_folder):
                 title = input(
                     "⚠️   WARNING - File name already exist! Please enter another name: ")
                 path_handler.rename_path(title)
-
-        print(f'Title: {dl_handler.title}')
-        print(f'Pages: {dl_handler.pages}')
         
         # Begin download images
         print("[ Downloading ]")
