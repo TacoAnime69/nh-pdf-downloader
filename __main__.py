@@ -8,6 +8,7 @@ import requests
 import os
 import shutil
 import sys
+import datetime
 
 
 class DownloadHandler:
@@ -75,15 +76,15 @@ class PathHandler:
     @property
     def valid(self):
         return len(self._final_path) < 200
-    
+
     @property
     def unique(self):
         return not os.path.exists(self._final_path)
-    
+
     @property
     def temp_path(self):
         return self._temp_path
-    
+
     @property
     def final_path(self):
         return self._final_path
@@ -116,7 +117,6 @@ class PathHandler:
             # go through each character in the set and replace with nothing
             result = result.replace(char, "")
         return result
-
 
 
 def open_folder(folder_path: str):
@@ -161,21 +161,30 @@ def show_help():
     print(message)
 
 
-def process_queue(dl_queue, output_folder, temp_folder):
+def process_queue(dl_queue, output_folder, temp_folder, log):
     for currPos, id_num in enumerate(dl_queue, 1):
+        # Create log statement
+        date = datetime.datetime.now()
+        log_statement = f'{date} | ID: {id_num} '
+
         # Get doujin info
         print(f'[ Fetching {id_num} ({currPos} / {len(dl_queue)}) ]')
         dl_handler = DownloadHandler(id_num)
         if not dl_handler.valid:
             print('ERROR - Doujin not found. Skipped\n')
+            log_statement += '[ERROR] Doujin not found.\n'
+            log.write(log_statement)
             continue
         print(f'Title: {dl_handler.title}')
         print(f'Pages: {dl_handler.pages}')
 
         # Check to see if file exist
-        path_handler = PathHandler(output_folder, temp_folder, dl_handler.title, id_num)
+        path_handler = PathHandler(
+            output_folder, temp_folder, dl_handler.title, id_num)
         if not path_handler.unique:
             print("ERROR - File already exist. Skipped.\n")
+            log_statement += '[ERROR] File already exist.\n'
+            log.write(log_statement)
             continue
         # Check to see if path is too long
         while not path_handler.valid or not path_handler.unique:
@@ -187,7 +196,7 @@ def process_queue(dl_queue, output_folder, temp_folder):
                 title = input(
                     "⚠️   WARNING - File name already exist! Please enter another name: ")
                 path_handler.rename_path(title)
-        
+
         # Begin download images
         print("[ Downloading ]")
         if not os.path.exists(output_folder):
@@ -221,11 +230,13 @@ def process_queue(dl_queue, output_folder, temp_folder):
             print("Done!\n")
         else:
             print("Done ✅\n")
+
+        log_statement += f'[SUCCESS] {dl_handler.title}.\n'
+        log.write(log_statement)
     pass
 
 
-
-def get_command(output_folder, temp_folder):
+def get_command(output_folder, temp_folder, log):
     input_prompt = "Enter number(s): "
     num_input = input(input_prompt).split()
     while num_input[0] != "done":
@@ -235,7 +246,7 @@ def get_command(output_folder, temp_folder):
         elif (num_input[0] == "help"):
             show_help()
         else:
-            process_queue(num_input, output_folder, temp_folder)
+            process_queue(num_input, output_folder, temp_folder, log)
         # Ask for more input
         num_input = input(input_prompt).split()
 
@@ -246,11 +257,13 @@ if __name__ == "__main__":
     print('Enter \'help\' to see usage and commands\n')
     output_folder = os.path.join(os.getcwd(), 'hentai')
     all_temp = os.path.join(output_folder, 'temp')
+    history_log = open('history.log', 'a+')
     try:
-        get_command(output_folder, all_temp)
+        get_command(output_folder, all_temp, history_log)
     except KeyboardInterrupt:
         print('\n\nStopping all queues (if any).')
     if os.path.exists(all_temp):
         shutil.rmtree(all_temp)
 
+    history_log.close()
     print("\n---Program End---")
