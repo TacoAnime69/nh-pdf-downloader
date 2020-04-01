@@ -226,6 +226,7 @@ def process_queue(dl_queue, output_folder, temp_folder, log):
         # Remove temp images
         print("[ Removing Temp Data ]")
         shutil.rmtree(temp_folder)
+        print(f'Saved at {path_handler.final_path}')
         if platform == "win32":
             print("Done!\n")
         else:
