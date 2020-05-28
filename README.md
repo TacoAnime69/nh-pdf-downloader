@@ -66,7 +66,9 @@ Feel free to request features.
 You are welcome to contribute to this as you'd like!
 
 ## Support
+*__Before reaching out for support, please read the [FAQ](https://github.com/TacoAnime69/nh-pdf-downloader/wiki/FAQ)!__*
+
 Feel free to reach out if you have any questions!
-> If you want to report a bug, please read __Known Bugs__ and only use email.
+> If you want to report a bug, please check out __Issues__ and only use email.
 - Email: hentai.boi@outlook.com
 - Twitter at [@TacoAnime69](https://twitter.com/TacoAnime69)
