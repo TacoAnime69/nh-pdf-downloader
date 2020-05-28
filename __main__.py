@@ -25,7 +25,7 @@ class DownloadHandler:
             self._valid = True
         except:
             self._valid = False
-        pass
+        return
 
     def save_image(self, at_page, destination):
         curr_page = f"https://nhentai.net/g/{self.id_num}/{at_page}/"
@@ -62,6 +62,7 @@ class PDFHandler:
         converted.remove(first_page)
         first_page.save(output_path, save_all=True,
                         append_images=converted)
+        return
 
 
 class PathHandler:
@@ -124,6 +125,7 @@ def open_folder(folder_path: str):
         os.system(f'open {folder_path}/')
     elif platform == "win32":
         os.system(f'start {folder_path}\\')
+    return
 
 
 def show_help():
@@ -159,6 +161,7 @@ def show_help():
                      default download folder
             """
     print(message)
+    return
 
 
 def process_queue(dl_queue, output_folder, temp_folder, log):
@@ -232,9 +235,12 @@ def process_queue(dl_queue, output_folder, temp_folder, log):
         else:
             print("Done ✅\n")
 
-        log_statement += f'[SUCCESS] {dl_handler.title}.\n'
-        log.write(log_statement)
-    pass
+        try:
+            log.write(f'{log_statement}[SUCCESS] {dl_handler.title}.\n')
+        except:
+            # In case a unicode character cannot be written to history log.
+            log.write(f'{log_statement}[SUCCESS] [LOG ERROR] Title could not be recorded due to bad charaacter.\n')
+    return
 
 
 def get_command(output_folder, temp_folder, log):
@@ -250,6 +256,7 @@ def get_command(output_folder, temp_folder, log):
             process_queue(num_input, output_folder, temp_folder, log)
         # Ask for more input
         num_input = input(input_prompt).split()
+    return
 
 
 if __name__ == "__main__":
