@@ -18,10 +18,14 @@ class DownloadHandler:
         tree = html.fromstring(page.content)
         try:
             # if the page doesn't exist, the following will throw an error
-            title = str(tree.xpath('//div[@id="info"]/h1/text()')[0])
+            title = str(tree.xpath('//div[@id="info"]/h1/span[@class="pretty"]/text()')[0])
+            title += str(tree.xpath('//div[@id="info"]/h1/span[@class="after"]/text()')[0])
             self._title = title
+            print((tree.xpath('//a[@class="tag"]/text()')[3]).split()[0])
             self._pages = int(
-                str(tree.xpath('//div[@id="info"]/div/text()')[0]).split()[0])
+                str(tree.xpath('//span[@class="name"]/a/text()')[0]).split()[0])
+            self._valid = False
+            return
             self._valid = True
         except:
             self._valid = False
