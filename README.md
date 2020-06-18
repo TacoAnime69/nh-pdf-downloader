@@ -1,4 +1,5 @@
 #### nh-pdf-downloader
+*_IMPORTATN UPDATE (6/18): nhentai has recently updated their website that changes the webpage structure of a given doujin. This project has been updated for the new changes. If your previous download of this repo did not work, please redownload / reclown now. Thank you_*
 # nhentai PDF Downloader
 > Downloads and coverts any doujin/manga from nhentai to PDF
 
