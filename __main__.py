@@ -21,12 +21,11 @@ class DownloadHandler:
             title = str(tree.xpath('//div[@id="info"]/h1/span[@class="pretty"]/text()')[0])
             title += str(tree.xpath('//div[@id="info"]/h1/span[@class="after"]/text()')[0])
             self._title = title
-            print((tree.xpath('//a[@class="tag"]/text()')[3]).split()[0])
+            # print(len(tree.xpath('//div[@class="thumb-container"]')))
             self._pages = int(
-                str(tree.xpath('//span[@class="name"]/a/text()')[0]).split()[0])
-            self._valid = False
-            return
+                len(tree.xpath('//div[@class="thumb-container"]')))
             self._valid = True
+            # self._valid = False # DEBUG ONLY
         except:
             self._valid = False
         return
@@ -36,7 +35,7 @@ class DownloadHandler:
         page = requests.get(curr_page)
         tree = html.fromstring(page.content)
         img_link = tree.xpath(
-            '//img[@class="fit-horizontal"]/@src')
+            '//section[@id="image-container"]/a/img/@src')
         # Save image to temp folder
         img_file = os.path.join(destination, f"{at_page}.jpg")
         temp_img = open(img_file, 'wb')
