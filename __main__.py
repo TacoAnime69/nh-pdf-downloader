@@ -19,7 +19,10 @@ class DownloadHandler:
         try:
             # if the page doesn't exist, the following will throw an error
             title = str(tree.xpath('//div[@id="info"]/h1/span[@class="pretty"]/text()')[0])
-            title += str(tree.xpath('//div[@id="info"]/h1/span[@class="after"]/text()')[0])
+            try:
+                title += str(tree.xpath('//div[@id="info"]/h1/span[@class="after"]/text()')[0])
+            except:
+                pass
             self._title = title
             # print(len(tree.xpath('//div[@class="thumb-container"]')))
             self._pages = int(
