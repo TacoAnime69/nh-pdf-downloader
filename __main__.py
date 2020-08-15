@@ -40,7 +40,7 @@ class DownloadHandler:
         img_link = tree.xpath(
             '//section[@id="image-container"]/a/img/@src')
         # Save image to temp folder
-        img_file = os.path.join(destination, f"{at_page}.jpg")
+        img_file = os.path.join(destination, f"{at_page}.png")
         temp_img = open(img_file, 'wb')
         temp_img.write(requests.get(img_link[0]).content)
         temp_img.close()
@@ -62,8 +62,9 @@ class DownloadHandler:
 class PDFHandler:
     def save_to_pdf(self, images, output_path):
         converted = []
-        for img in images:
-            converted.append(img.convert('RGB'))
+        for img_num, img in enumerate(images):
+            # print(f'Converting {img_num}')  Debug only
+            converted.append(img.convert('RGBA').convert('RGB'))
         first_page = converted[0]
         converted.remove(first_page)
         first_page.save(output_path, save_all=True,
