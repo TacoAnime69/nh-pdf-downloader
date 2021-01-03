@@ -75,7 +75,7 @@ class PDFHandler:
 class PathHandler:
     def __init__(self, folder_path: str, temp_path: str, name: str, id_num: int):
         self.path_dir = folder_path
-        self.bad_chars = ['*', ':', '?', '.', '"', '|', '/', '\\']
+        self.bad_chars = ['*', ':', '?', '.', '"', '|', '/', '\\', '<', '>']
         self.file_name = self.__problem_char_rm(name)
         # print(self.__set_path())
         self._final_path = self.__set_path()
