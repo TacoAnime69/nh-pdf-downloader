@@ -4,12 +4,23 @@
 from lxml import html
 from PIL import Image
 from sys import platform
-import requests
-import os
-import shutil
-import sys
-import datetime
+from collections import defaultdict
+import requests, os, shutil, sys, datetime, re
 
+#Do not edit
+defaultconfig="""
+#Set file name structure
+#Possible identifiers are {Id}, {Name}. Example: *name = "{Id}-{Name}"* will name the file as its id followed by its name with a "-" in between
+name = "" 
+
+#Set Path for output folder, defaults to cwd if left blank. Example: *path = ".\hentai"* means a hentai folder where this file file exists or 
+# you can just use the absolute filepath
+path = "" 
+
+#Set Location of text file containing Ids/webpage URLs. Ids must be separated by any delimiter. URLs need nothing
+#It will read the largest consecutive group of numbers as 1 Id hence why Ids must be separated
+batch = ""
+"""
 
 class DownloadHandler:
     def __init__(self, id_num):
@@ -37,8 +48,7 @@ class DownloadHandler:
         curr_page = f"https://nhentai.net/g/{self.id_num}/{at_page}/"
         page = requests.get(curr_page)
         tree = html.fromstring(page.content)
-        img_link = tree.xpath(
-            '//section[@id="image-container"]/a/img/@src')
+        img_link = tree.xpath('//section[@id="image-container"]/a/img/@src')
         # Save image to temp folder
         img_file = os.path.join(destination, f"{at_page}.png")
         temp_img = open(img_file, 'wb')
@@ -58,7 +68,6 @@ class DownloadHandler:
     def pages(self):
         return self._pages
 
-
 class PDFHandler:
     def save_to_pdf(self, images, output_path):
         converted = []
@@ -69,14 +78,13 @@ class PDFHandler:
         converted.remove(first_page)
         first_page.save(output_path, save_all=True,
                         append_images=converted)
-        return
-
 
 class PathHandler:
     def __init__(self, folder_path: str, temp_path: str, name: str, id_num: int):
         self.path_dir = folder_path
         self.bad_chars = ['*', ':', '?', '.', '"', '|', '/', '\\', '<', '>']
-        self.file_name = self.__problem_char_rm(name)
+        fname = config["name"].format(Id = id_num, Name = name)
+        self.file_name = self.__problem_char_rm(fname)
         # print(self.__set_path())
         self._final_path = self.__set_path()
         self._temp_path = os.path.join(temp_path, f'temp-{id_num}')
@@ -126,40 +134,50 @@ class PathHandler:
             result = result.replace(char, "")
         return result
 
-
 def open_folder(folder_path: str):
     if platform == "darwin":
         os.system(f'open {folder_path}/')
     elif platform == "win32":
         os.system(f'start {folder_path}\\')
-    return
-
 
 def show_help():
-    message = f"""
+    message = """
             nhentai downloader pdf - help
 
             [ Prompt Usage ]
 
             [ To Download ]
-            - Enter in the ID number(s) of the doujin you wish to download.
-            Note: Doujins musct come from nhentai website. 
+            - Enter in the ID number(s)/webpage URL(s) of the doujin you wish to download.
+            Note: Doujins must come from nhentai website. 
                   This script will not work with any other site.
             Hint: ID numbers can be found in the URL. 
                   https://nhentai.net/g/[id number]/
             - To create a queue (multiple downloads) enter all the ID numbers
-            Note: The order of the ID's does not matter.
-              on the same input field separated by a space
+            Note: -The order of the ID's does not matter.
+                  -ID(s) need any non numeric delimiter whether it be whitespace or hypen or mixed, whereas URL(s) 
+                   do not need any as each consecutive group of numbers is considered as one Id
             - Hit enter to begin downloading
             Note: If a doujin has the same name as an already downloaded item,
                   then it will skip that download.
                   If a doujin has a name that is too long, a warning will
                   appear and prompt to enter a new name.
             Usage:
-            Enter number(s): [ID number(s) ... ]
+            Enter ID(s)/webpage URL(s)/Command: [ID number(s)/webpage URL(s) ... ]
             Example:
-            Enter number(s): 111111 222222 333333
-
+            Enter ID(s)/webpage URL(s)/Command: 111111 222222,333333https://nhentai.net/g/444444https://nhentai.net/g/555555
+            
+            [ Batch Downloading from text file]
+            -You can copy paste all the links of the doujins you want to download into a text file and set
+             the value of batch in the config.txt to the path of this text file.
+            Example: 
+                Assume the text file "test.txt" in the same folder as the script has the following contents:
+                    111111 222222https://nhentai.net/g/444444https://nhentai.net/g/555555
+                    nhentai.net/g/666666
+                Then all you have to do is set the value of the batch line to 
+                    batch = ".\test.txt"
+                and all the doujins posted will be downloaded when the script is run
+            Note: The batch line in the config.txt will be reset every time the script is executed
+                
             [ Other Options ]
             When prompted, you may enter one of the other commands:
             - done : this will end execution of the program
@@ -168,8 +186,6 @@ def show_help():
                      default download folder
             """
     print(message)
-    return
-
 
 def process_queue(dl_queue, output_folder, temp_folder, log):
     for currPos, id_num in enumerate(dl_queue, 1):
@@ -189,8 +205,7 @@ def process_queue(dl_queue, output_folder, temp_folder, log):
         print(f'Pages: {dl_handler.pages}')
 
         # Check to see if file exist
-        path_handler = PathHandler(
-            output_folder, temp_folder, dl_handler.title, id_num)
+        path_handler = PathHandler(output_folder, temp_folder, dl_handler.title, id_num)
         if not path_handler.unique:
             print("ERROR - File already exist. Skipped.\n")
             log_statement += '[ERROR] File already exist.\n'
@@ -249,32 +264,73 @@ def process_queue(dl_queue, output_folder, temp_folder, log):
             log.write(f'{log_statement}[SUCCESS] [LOG ERROR] Title could not be recorded due to bad charaacter.\n')
     return
 
-
-def get_command(output_folder, temp_folder, log):
-    input_prompt = "Enter number(s): "
-    num_input = input(input_prompt).split()
+def get_command(output_folder, temp_folder, log, batch = ""):
+    input_prompt = "Enter ID(s)/webpage URL(s)/Command: "
+    num_input = batch if batch else re.findall(r"((?:\d+)|(?:help)|(?:open)|(?:done))", input(input_prompt))
     while num_input[0] != "done":
-        if (num_input[0] == "open"):
+        if num_input[0] == "open":
             open_folder(output_folder)
             print()
-        elif (num_input[0] == "help"):
+        elif num_input[0] == "help":
             show_help()
         else:
             process_queue(num_input, output_folder, temp_folder, log)
         # Ask for more input
         num_input = input(input_prompt).split()
-    return
 
+def parse_config():
+    f = open('config.txt').read()
+    
+    #Read into a dict
+    config = defaultdict(lambda: None, {i:(j or None) for i,j in re.findall(r'([A-Za-z]+) = "(.*)"', f)})
+    
+    #Name and output folder check
+    if config["path"] is None: 
+        print("No output path has been set, defaulting to cwd")
+        config["path"] = os.path.join(os.getcwd(), 'hentai')
+    if config["name"] is None:
+        print("No naming structure has been provided, defaulting to id")
+        config["name"] = "{Id}"
+    print()
+    print("Output folder is", config["path"])
+    print("File structure is", config["name"], "\n")
+    
+    #Batch downloading parse + check
+    batch = None
+    if config["batch"] is None: print("Batch downloading has been turned off")
+    else:
+        print("Batch downloading has been turned on")
+        print("Downloading from inputs provided in file at:", config["batch"])
+        if os.path.exists(config['batch']): 
+            batch = re.findall(r"\d+", open(config['batch']).read())
+            print("Downloading the following ids:\n", *batch, sep = "\n")
+            os.system("pause")
+            #Cleanup
+            open('config.txt', 'w').write(re.sub(r'batch = ".*"', r'batch = ""', f))
+        else: print('Such a file {} does not exist, skipping batch download'.format(config['batch']))
+    print()
+    config["batch"] = batch
+    
+    return dict(config)
 
 if __name__ == "__main__":
     # Start program
     print(f"[ nhentai downloader pdf ]\n")
-    print('Enter \'help\' to see usage and commands\n')
-    output_folder = os.path.join(os.getcwd(), 'hentai')
+    
+    if os.path.exists('config.txt'): config = parse_config()
+    else: 
+        open('config.txt', 'w').write(defaultconfig)
+        config = parse_config()
+    
+    output_folder = config['path']
     all_temp = os.path.join(output_folder, 'temp')
     history_log = open('history.log', 'a+')
+    
     try:
-        get_command(output_folder, all_temp, history_log)
+        if config['batch']: get_command(output_folder, all_temp, history_log, config['batch'])
+        else:
+            print("Enter 'help' to see usage and commands\n")
+            get_command(output_folder, all_temp, history_log)
     except KeyboardInterrupt:
         print('\n\nStopping all queues (if any).')
     if os.path.exists(all_temp):
