@@ -1,5 +1,5 @@
 # nhentai downloader
-# Date modified: January 18, 2020
+# Date modified: June 7, 2021
 
 from lxml import html
 from PIL import Image
