@@ -19,24 +19,20 @@ defaultconfig="""
 # must preceeded by a \\(backslash).
 #If a line starts with a non alphabetic character then that line is considered commented,
 # but preferably use # to indicate comments
-
 #Set file name structure
 #Possible identifiers are {Id}, {Name}. Example: *name = "{Id}-{Name}"* will name the file as its id followed by its name with a "-" in between
 name = "" 
-
 #Set Path for output folder, defaults to cwd if left blank. Example: *path = ".\hentai"* means a hentai folder where this file file exists or 
 # you can just use the absolute filepath
 path = "" 
-
 #Set Location of text file containing Ids/webpage URLs. Ids must be separated by any delimiter. URLs need nothing
 #It will read the largest consecutive group of numbers as 1 Id hence why Ids must be separated
 batch = ""
-
-#Set how many pages are downloaded at once, defaults to 1 if empty. Do not recommend going above 6 threads
+#Set how many pages are downloaded at once, defaults to 1 if empty. Strongly do not recommend going above 6 threads
 threads = ""
-
-#Sets the file type of the final output. Available types are pdf, cbz, cbt, cbz. Case-Sensitive. 
-#Defaults to pdf for empty/any other value
+#Sets the file type of the final output. Available types are pdf, cbz, cbt, cbz, img. Case-Sensitive. 
+#img will loosely save the files, i.e save the png files as-is in a folder named after the naming scheme.
+#Defaults to pdf for empty/any other value.
 type = "pdf"
 """
 
@@ -92,9 +88,7 @@ class DownloadHandler:
 class PDFHandler:
     def save_to_pdf(self, images, output_path):
         converted = []
-        #for img_num, img in enumerate(images): Debug only
         for img in images:
-            # print(f'Converting {img_num}')  Debug only
             converted.append(img.convert('RGBA').convert('RGB'))
         first_page = converted[0]
         converted.remove(first_page)
@@ -107,7 +101,6 @@ class PathHandler:
         self.bad_chars = ['*', ':', '?', '.', '"', '|', '/', '\\', '<', '>']
         fname = config["name"].format(Id = id_num, Name = name)
         self.file_name = self.__problem_char_rm(fname)
-        # print(self.__set_path())
         self._final_path = self.__set_path()
         self._temp_path = os.path.join(temp_path, f'temp-{id_num}')
 
@@ -116,11 +109,11 @@ class PathHandler:
         #This reg key if set to 1 removes the char limit for path
         long_paths_enabled = platform == 'win32' and winreg.QueryValueEx( winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, 
             r'SYSTEM\CurrentControlSet\Control\FileSystem'), 'LongPathsEnabled')[0] == 1
-        return long_paths_enabled or (len(self._final_path) < 200)
+        return long_paths_enabled or (len(self.final_path) < 200)
 
     @property
     def unique(self):
-        return not os.path.exists(self._final_path)
+        return not os.path.exists(self.final_path)
 
     @property
     def temp_path(self):
@@ -135,6 +128,7 @@ class PathHandler:
         self._final_path = self.__set_path()
 
     def __set_path(self):
+        if self.__format == 'img': return os.path.join(f'{self.path_dir}', f'{self.file_name}')
         return os.path.join(f'{self.path_dir}', f'{self.file_name}.{self.__format}')
 
     def __problem_char_rm(self, address: str) -> str:
@@ -142,12 +136,10 @@ class PathHandler:
         Function to remove problematic characters of a path.
         Any characters that causes the "windows can't create this path because it 
         contains illegal characters" should be removed here
-
         Parameters
         ----------
         address : str
             The path string
-
         Returns
         -------
         str
@@ -168,9 +160,7 @@ def open_folder(folder_path: str):
 def show_help():
     message = """
             nhentai downloader pdf - help
-
             [ Prompt Usage ]
-
             [ To Download ]
             - Enter in the ID number(s)/webpage URL(s) of the doujin you wish to download.
             Note: Doujins must come from nhentai website. 
@@ -201,7 +191,7 @@ def show_help():
                 Then all you have to do is set the value of the batch line to 
                     batch = ".\\test.txt"
                 and all the doujins posted will be downloaded when the script is run
-            Note: The batch line in the config.txt will be reset every time the script is executed
+            Note: The batch line in the config.txt will be reset every time the script is executed.
                 
             [ Other Options ]
             When prompted, you may enter one of the other commands:
@@ -209,12 +199,10 @@ def show_help():
             - help : this will display this text
             - open : this will open finder/files/file explorer to the
                      default download folder
-
             [ Threads ]
             - Set this option in the config file to specify how many pages of the same doujin are to be downloaded at once
-
             [ Type ]
-            - Set this option in the config file to specify the file type that the doujins to be saved as(pdf, cbt, cbz).
+            - Set this option in the config file to specify the file type that the doujins to be saved as(pdf, cbt, cbz, cbt, img i.e unpacked).
             """
     print(message)
 
@@ -263,25 +251,20 @@ def process_queue(dl_queue, output_folder, temp_folder, log):
             shutil.rmtree(path_handler.temp_path)
         os.mkdir(path_handler.temp_path)
         
-        #Start dividing pages based on number of threads to assign the downloading tasks
-        pages_divide, i = [[] for _ in range(config["threads"])], 0
-        for j in range(dl_handler.pages):
-            pages_divide[i].append(j+1)
-            i += 1
-            if i >= len(pages_divide): i = 0
-        
         """
         Threading stuff below
         - The working_on variable is used to store a dict and update the screen to show which thread
           is downloading which file at a given time, basically what a thread is working on atm
         - Images was changed into a dict(was a list before) so that the order of pages is maintained
-        - The before variable is used to store the no of threads existing before the program creates new
-          threads so that once the threads created by the program terminates, the program goes into the 
-          next stage. While it is possible to iterate through the list checking if the thread is alive using
-          is_alive, I felt that this might be a better solution
         - The threads list stores the threads created
         - The Count list variable stores the number of pages downloaded
+        - page_queue is a iterator used to feed page numbers to the threads so that once a thread finishes 
+          its current page it can immediately move onto the next page that has not yet been completed.
         """
+
+        #Queue to feed downloader
+        page_queue = iter(range(1,dl_handler.pages+1))
+
         images, working_on, Count = {}, {i:None for i in range(config["threads"])}, [0]
         
         def helper(pages, images, dl_handler, path_handler, thread_num, working_on, Count):
@@ -291,28 +274,29 @@ def process_queue(dl_queue, output_folder, temp_folder, log):
                 img_path = dl_handler.save_image(p, path_handler.temp_path)
                 # Add to list of images for conversion later
                 images[p], Count[0] = img_path, Count[0] + 1
+                if not exit_event.is_set(): break
             working_on[thread_num] = "Done"
-        before = threading.active_count()#Keep count of how many threads already existed
-        threads = [threading.Thread(
-                        target = helper, 
-                        args = (pages, images, dl_handler, path_handler, i, working_on, Count)) 
-                    for i, pages in enumerate(pages_divide)]
+        
+        global threads #Made a global variable so as to make it gracefully terminate on KeyboardInterrupt
+        threads = [threading.Thread(target = helper, daemon = True, 
+                        args = (page_queue, images, dl_handler, path_handler, i, working_on, Count))
+                    for i in range(config['threads'])]
         
         for i in threads: i.start()
 
         #Prints current download status
-        print("|Thread ID : |" + '|'.join("{:>5}".format(i) for i in range(config["threads"]))+'|Dwnl.|Total|Completed%')
-        template = "|On Page Num:|" + '{:>5}|'*(config["threads"]+2) + '{:>10}' + '\r'
+        borders = '+------------+' + '-----+'*config["threads"] + '-----+-----+----------+'
+        print(borders, "\n|Thread ID : |" + '|'.join("{:>5}".format(i) for i in range(config["threads"]))+'|Dwnl.|Total|Completed%|', '\n'+borders)
+        template = "|On Page Num:|" + '{:>5}|'*(config["threads"]+2) + '{:>10}' + '|\r'
         old_working_on = {i:working_on[i] for i in working_on}
         print(template.format(*[working_on[i] for i in range(config["threads"])]+[0, dl_handler.pages, 0]), end='')
         
-        while threading.active_count() - before: #Check if newly created threads have terminated
+        while any((i.is_alive() for i in threads)): #Check if threads have terminated
             if working_on != old_working_on: #Updates the screen only if a thread moves on to the next page
                 print(template.format(*[working_on[i] for i in range(config["threads"])]
                         +[Count[0], dl_handler.pages, '{:.2f}'.format(100*Count[0]/dl_handler.pages)]), end='')
                 old_working_on.update(working_on)
-        print(template.format(*(['Done' for _ in range(config["threads"])]+[Count[0], dl_handler.pages, '100.00'])))
-        print("Done!")
+        print(template.format(*(['Done' for _ in range(config["threads"])]+[Count[0], dl_handler.pages, '100.00'])), '\n'+borders, "\nDone!")
 
         if config["type"] == 'pdf':
             # Convert to PDF
@@ -320,7 +304,12 @@ def process_queue(dl_queue, output_folder, temp_folder, log):
             images = [Image.open(images[i+1]) for i in range(dl_handler.pages)]
             pdf_handler = PDFHandler()
             pdf_handler.save_to_pdf(images, path_handler.final_path)
-        else:
+
+        elif config['type'] == 'img':#Unpacked handling
+            os.rename(path_handler.temp_path, path_handler.file_name)
+            shutil.move(path_handler.file_name, path_handler.path_dir)
+
+        else:# CBx handling
             print(f'[ Converting to {config["type"].upper()} ]')
             file = ZipFile(path_handler.final_path, 'w')
             cwd = os.getcwd()
@@ -333,11 +322,10 @@ def process_queue(dl_queue, output_folder, temp_folder, log):
             file.close()
         
         print("Completed conversion!")
-
+        print(f'Saved at {path_handler.final_path}')
         # Remove temp images
         print("[ Removing Temp Data ]")
         shutil.rmtree(temp_folder)
-        print(f'Saved at {path_handler.final_path}')
         if platform == "win32":
             print("Done!\n")
         else:
@@ -380,7 +368,7 @@ def parse_config():
     print("File structure is", config["name"], "\n")
     
     #File format
-    if config['type'] is None or config['type'].lower() not in ('pdf', 'cbt', 'cbz', 'cbr'):
+    if config['type'] is None or config['type'].lower() not in ('pdf', 'cbt', 'cbz', 'cbr', 'img'):
         config['type'] = 'pdf'
     print("Doujin will be saved as a", config['type'].upper(), 'file.')
 
@@ -410,7 +398,10 @@ def parse_config():
 if __name__ == "__main__":
     # Start program
     print("[ nhentai downloader pdf ]\n")
-    
+
+    #Made a global variable so as to gracefully terminate on KeyboardInterrupt. See below
+    threads = []
+
     if os.path.exists('config.txt'): config = parse_config()
     else: 
         open('config.txt', 'w').write(defaultconfig)
@@ -421,7 +412,10 @@ if __name__ == "__main__":
     history_log = open('history.log', 'a+')
     history_log.write(f'{datetime.datetime.now()} || Script Started')
     history_log.write(f'{datetime.datetime.now()} || Config: {config}')
-    
+
+    exit_event = threading.Event()
+    exit_event.set()
+
     try:
         if config['batch']: 
             get_command(output_folder, all_temp, history_log, config['batch'])
@@ -430,7 +424,10 @@ if __name__ == "__main__":
             print("Enter 'help' to see usage and commands\n")
             get_command(output_folder, all_temp, history_log)
     except KeyboardInterrupt:
-        print('\n\nStopping all queues (if any).')
+        exit_event.clear()
+        print("\n\nWaiting for threads to terminate")
+        for i in threads: i.join()
+        print("Terminated successfully")
     if os.path.exists(all_temp):
         shutil.rmtree(all_temp)
 
