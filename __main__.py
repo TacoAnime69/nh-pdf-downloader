@@ -8,9 +8,7 @@ from sys import platform
 from zipfile import ZipFile
 from collections import defaultdict
 import requests, os, shutil, datetime, threading
-
-if platform == 'win32':
-    import winreg
+if platform == 'win32': import winreg
 
 #Do not edit
 defaultconfig="""
@@ -116,11 +114,8 @@ class PathHandler:
     @property
     def valid(self):
         #This reg key if set to 1 removes the char limit for path
-        if platform == 'Win32':
-            long_paths_enabled = winreg.QueryValueEx( winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, 
+        long_paths_enabled = platform == 'win32' and winreg.QueryValueEx( winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, 
             r'SYSTEM\CurrentControlSet\Control\FileSystem'), 'LongPathsEnabled')[0] == 1
-        else:
-            long_paths_enabled = False
         return long_paths_enabled or (len(self._final_path) < 200)
 
     @property
