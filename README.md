@@ -92,7 +92,7 @@ Feel free to request features.
 - [x] ~Enter multiple numbers at once (and let the script download all)~
 - [x] Create a config file that would allow the user to specify an output folder (and call it whatever they want)
 - [x] Add CBR/CBZ support
-- [ ] Add config for automatically putting downloaded PDF into a subfolder named after its parody, author, or language.
+- [ ] Add config for automatically putting downloaded PDF into a sub-folder named after its parody, author, or language.
 #### Considering
 > Features that will be added if enough people request them
 - A simple user interface

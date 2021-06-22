@@ -8,15 +8,16 @@ from sys import platform
 from zipfile import ZipFile
 from collections import defaultdict
 import requests, os, shutil, datetime, threading
+
 if platform == 'win32': import winreg
 
-#Do not edit
-defaultconfig="""
+# Do not edit
+default_config = """
 #Keys and values are to be provided in a [<key> = "<value>"] format.
 #The spaces, = and the quotes are a must. The line is read and is stored
 # into a config dict as <key>:<value> pairs where both the key and value are strings.
 #Keys may contain only upper/lower english alphabets. Any double quote inside the value 
-# must preceeded by a \\(backslash).
+# must preceded by a \\(backslash).
 #If a line starts with a non alphabetic character then that line is considered commented,
 # but preferably use # to indicate comments
 #Set file name structure
@@ -36,20 +37,20 @@ threads = ""
 type = "pdf"
 """
 
+
 class DownloadHandler:
     def __init__(self, id_num):
         self.id_num = id_num
         page = requests.get(f'https://nhentai.net/g/{self.id_num}/')
         tree = html.fromstring(page.content)
         try:
-            # if the page doesn't exist, the following will throw an error
+            # If the page doesn't exist, the following will throw an error
             title = str(tree.xpath('//div[@id="info"]/h1/span[@class="pretty"]/text()')[0])
             try:
                 title += str(tree.xpath('//div[@id="info"]/h1/span[@class="after"]/text()')[0])
             except:
                 pass
             self._title = title
-            # print(len(tree.xpath('//div[@class="thumb-container"]')))
             self._pages = int(
                 len(tree.xpath('//div[@class="thumb-container"]')))
             self._valid = True
@@ -68,8 +69,8 @@ class DownloadHandler:
         temp_img = open(img_file, 'wb')
         temp_img.write(requests.get(img_link[0]).content)
         temp_img.close()
-        if config['type'] != 'pdf': #If the Doujin is to be saved as a CBx file
-            Image.open(img_file).save(os.path.join(destination, f"{at_page}.jpg"), quality = 100)
+        if config['type'] != 'pdf':  # If the Doujin is to be saved as a CBx file
+            Image.open(img_file).save(os.path.join(destination, f"{at_page}.jpg"), quality=100)
             img_file = f"{at_page}.jpg"
         return img_file
 
@@ -85,8 +86,10 @@ class DownloadHandler:
     def pages(self):
         return self._pages
 
+
 class PDFHandler:
-    def save_to_pdf(self, images, output_path):
+    @staticmethod
+    def save_to_pdf(images, output_path):
         converted = []
         for img in images:
             converted.append(img.convert('RGBA').convert('RGB'))
@@ -94,21 +97,24 @@ class PDFHandler:
         converted.remove(first_page)
         first_page.save(output_path, save_all=True, append_images=converted)
 
+
 class PathHandler:
     def __init__(self, folder_path: str, temp_path: str, name: str, id_num: int):
         self.path_dir = folder_path
         self.__format = config['type']
         self.bad_chars = ['*', ':', '?', '.', '"', '|', '/', '\\', '<', '>']
-        fname = config["name"].format(Id = id_num, Name = name)
-        self.file_name = self.__problem_char_rm(fname)
+        file_name = config["name"].format(Id=id_num, Name=name)
+        self.file_name = self.__problem_char_rm(file_name)
         self._final_path = self.__set_path()
         self._temp_path = os.path.join(temp_path, f'temp-{id_num}')
 
     @property
     def valid(self):
-        #This reg key if set to 1 removes the char limit for path
-        long_paths_enabled = platform == 'win32' and winreg.QueryValueEx( winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, 
-            r'SYSTEM\CurrentControlSet\Control\FileSystem'), 'LongPathsEnabled')[0] == 1
+        # This reg key if set to 1 removes the char limit for path
+        long_paths_enabled = platform == 'win32' \
+                             and winreg.QueryValueEx(winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
+                                                                    r'SYSTEM\CurrentControlSet\Control\FileSystem'),
+                                                     'LongPathsEnabled')[0] == 1
         return long_paths_enabled or (len(self.final_path) < 200)
 
     @property
@@ -148,14 +154,16 @@ class PathHandler:
         result = address
         for char in self.bad_chars:
             # go through each character in the set and replace with nothing
-            result = result.replace(char, "")
+            result = result.replace(char, '')
         return result
+
 
 def open_folder(folder_path: str):
     if platform == "darwin":
         os.system(f'open {folder_path}/')
     elif platform == "win32":
         os.system(f'start {folder_path}\\')
+
 
 def show_help():
     message = """
@@ -169,7 +177,7 @@ def show_help():
                   https://nhentai.net/g/[id number]/
             - To create a queue (multiple downloads) enter all the ID numbers
             Note: -The order of the ID's does not matter.
-                  -ID(s) need any non numeric delimiter whether it be whitespace or hypen or mixed, whereas URL(s) 
+                  -ID(s) need any non numeric delimiter whether it be whitespace or hyphen or mixed, whereas URL(s) 
                    do not need any as each consecutive group of numbers is considered as one Id
             - Hit enter to begin downloading
             Note: If a doujin has the same name as an already downloaded item,
@@ -205,6 +213,7 @@ def show_help():
             - Set this option in the config file to specify the file type that the doujins to be saved as(pdf, cbt, cbz, cbt, img i.e unpacked).
             """
     print(message)
+
 
 def process_queue(dl_queue, output_folder, temp_folder, log):
     for currPos, id_num in enumerate(dl_queue, 1):
@@ -250,7 +259,7 @@ def process_queue(dl_queue, output_folder, temp_folder, log):
         if os.path.exists(path_handler.temp_path):
             shutil.rmtree(path_handler.temp_path)
         os.mkdir(path_handler.temp_path)
-        
+
         """
         Threading stuff below
         - The working_on variable is used to store a dict and update the screen to show which thread
@@ -262,65 +271,68 @@ def process_queue(dl_queue, output_folder, temp_folder, log):
           its current page it can immediately move onto the next page that has not yet been completed.
         """
 
-        #Queue to feed downloader
-        page_queue = iter(range(1,dl_handler.pages+1))
+        # Queue to feed downloader
+        page_queue = iter(range(1, dl_handler.pages + 1))
 
-        images, working_on, Count = {}, {i:None for i in range(config["threads"])}, [0]
-        
+        images, working_on, Count = {}, {i: None for i in range(config["threads"])}, [0]
+
         def helper(pages, images, dl_handler, path_handler, thread_num, working_on, Count):
             for p in pages:
-                working_on[thread_num] = p #Set which page thread is working on
+                working_on[thread_num] = p  # Set which page thread is working on
                 # Fetch each image link of the gallery
                 img_path = dl_handler.save_image(p, path_handler.temp_path)
                 # Add to list of images for conversion later
                 images[p], Count[0] = img_path, Count[0] + 1
                 if not exit_event.is_set(): break
             working_on[thread_num] = "Done"
-        
-        global threads #Made a global variable so as to make it gracefully terminate on KeyboardInterrupt
-        threads = [threading.Thread(target = helper, daemon = True, 
-                        args = (page_queue, images, dl_handler, path_handler, i, working_on, Count))
-                    for i in range(config['threads'])]
-        
+
+        global threads  # Made a global variable so as to make it gracefully terminate on KeyboardInterrupt
+        threads = [threading.Thread(target=helper, daemon=True,
+                                    args=(page_queue, images, dl_handler, path_handler, i, working_on, Count))
+                   for i in range(config['threads'])]
+
         for i in threads: i.start()
 
-        #Prints current download status
-        borders = '+------------+' + '-----+'*config["threads"] + '-----+-----+----------+'
-        print(borders, "\n|Thread ID : |" + '|'.join("{:>5}".format(i) for i in range(config["threads"]))+'|Dwnl.|Total|Completed%|', '\n'+borders)
-        template = "|On Page Num:|" + '{:>5}|'*(config["threads"]+2) + '{:>10}' + '|\r'
-        old_working_on = {i:working_on[i] for i in working_on}
-        print(template.format(*[working_on[i] for i in range(config["threads"])]+[0, dl_handler.pages, 0]), end='')
-        
-        while any((i.is_alive() for i in threads)): #Check if threads have terminated
-            if working_on != old_working_on: #Updates the screen only if a thread moves on to the next page
+        # Prints current download status
+        borders = '+------------+' + '-----+' * config["threads"] + '-----+-----+----------+'
+        print(borders, "\n|Thread ID : |" + '|'.join(
+            "{:>5}".format(i) for i in range(config["threads"])) + '|Dwnl.|Total|Completed%|', '\n' + borders)
+        template = "|On Page Num:|" + '{:>5}|' * (config["threads"] + 2) + '{:>10}' + '|\r'
+        old_working_on = {i: working_on[i] for i in working_on}
+        print(template.format(*[working_on[i] for i in range(config["threads"])] + [0, dl_handler.pages, 0]), end='')
+
+        while any((i.is_alive() for i in threads)):  # Check if threads have terminated
+            if working_on != old_working_on:  # Updates the screen only if a thread moves on to the next page
                 print(template.format(*[working_on[i] for i in range(config["threads"])]
-                        +[Count[0], dl_handler.pages, '{:.2f}'.format(100*Count[0]/dl_handler.pages)]), end='')
+                                       + [Count[0], dl_handler.pages,
+                                          '{:.2f}'.format(100 * Count[0] / dl_handler.pages)]), end='')
                 old_working_on.update(working_on)
-        print(template.format(*(['Done' for _ in range(config["threads"])]+[Count[0], dl_handler.pages, '100.00'])), '\n'+borders, "\nDone!")
+        print(template.format(*(['Done' for _ in range(config["threads"])] + [Count[0], dl_handler.pages, '100.00'])),
+              '\n' + borders, "\nDone!")
 
         if config["type"] == 'pdf':
             # Convert to PDF
             print("[ Converting to PDF ]")
-            images = [Image.open(images[i+1]) for i in range(dl_handler.pages)]
+            images = [Image.open(images[it_img + 1]) for it_img in range(dl_handler.pages)]
             pdf_handler = PDFHandler()
             pdf_handler.save_to_pdf(images, path_handler.final_path)
 
-        elif config['type'] == 'img':#Unpacked handling
+        elif config['type'] == 'img':  # Unpacked handling
             os.rename(path_handler.temp_path, path_handler.file_name)
             shutil.move(path_handler.file_name, path_handler.path_dir)
 
-        else:# CBx handling
+        else:  # CBx handling
             print(f'[ Converting to {config["type"].upper()} ]')
             file = ZipFile(path_handler.final_path, 'w')
             cwd = os.getcwd()
             os.chdir(path_handler.temp_path)
-            for i in images: 
-                newname = f"{images[i]}".zfill(8)
-                os.rename(f"{images[i]}", newname)
-                file.write(newname)
+            for i in images:
+                new_name = f"{images[i]}".zfill(8)
+                os.rename(f"{images[i]}", new_name)
+                file.write(new_name)
             os.chdir(cwd)
             file.close()
-        
+
         print("Completed conversion!")
         print(f'Saved at {path_handler.final_path}')
         # Remove temp images
@@ -335,29 +347,33 @@ def process_queue(dl_queue, output_folder, temp_folder, log):
             log.write(f'{log_statement}[SUCCESS] {dl_handler.title}.\n')
         except:
             # In case a unicode character cannot be written to history log.
-            log.write(f'{log_statement}[SUCCESS] [LOG ERROR] Title could not be recorded due to bad charaacter.\n')
+            log.write(f'{log_statement}[SUCCESS] [LOG ERROR] Title could not be recorded due to bad character.\n')
 
-def get_command(output_folder, temp_folder, log, batch = ""):
+
+def get_command(output_folder, temp_folder, log, batch=""):
     input_prompt = "Enter ID(s)/webpage URL(s)/Command: "
     num_input = batch if batch else findall(r"((?:\d+)|(?:help)|(?:open)|(?:done))", input(input_prompt))
     while num_input[0] != "done":
         if num_input[0] == "open":
             open_folder(output_folder)
             print()
-        elif num_input[0] == "help": show_help()
-        else: process_queue(num_input, output_folder, temp_folder, log)
+        elif num_input[0] == "help":
+            show_help()
+        else:
+            process_queue(num_input, output_folder, temp_folder, log)
         # Ask for more input
         history_log.flush()
         num_input = findall(r"((?:\d+)|(?:help)|(?:open)|(?:done))", input(input_prompt))
 
+
 def parse_config():
     f = open('config.txt').read()
-    
-    #Read into a dict
-    config = defaultdict(lambda: None, {i:(j or None) for i,j in findall(r'\n([A-Za-z]+) = "(.*)"', f)})
-    
-    #Name and output folder check
-    if config["path"] is None: 
+
+    # Read into a dict
+    config = defaultdict(lambda: None, {i: (j or None) for i, j in findall(r'\n([A-Za-z]+) = "(.*)"', f)})
+
+    # Name and output folder check
+    if config["path"] is None:
         print("No output path has been set, defaulting to cwd")
         config["path"] = os.path.join(os.getcwd(), 'hentai')
     if config["name"] is None:
@@ -366,47 +382,53 @@ def parse_config():
     print()
     print("Output folder is", config["path"])
     print("File structure is", config["name"], "\n")
-    
-    #File format
+
+    # File format
     if config['type'] is None or config['type'].lower() not in ('pdf', 'cbt', 'cbz', 'cbr', 'img'):
         config['type'] = 'pdf'
     print("Doujin will be saved as a", config['type'].upper(), 'file.')
 
-    #Threads
-    if config["threads"] is None: config["threads"] = 1
-    else: config["threads"] = int(config["threads"])
+    # Threads
+    if config["threads"] is None:
+        config["threads"] = 1
+    else:
+        config["threads"] = int(config["threads"])
     print("Threads for downloading:", config["threads"], '\n')
 
-    #Batch downloading parse + check
+    # Batch downloading parse + check
     batch = None
-    if config["batch"] is None: print("Batch downloading has been turned off")
+    if config["batch"] is None:
+        print("Batch downloading has been turned off")
     else:
         print("Batch downloading has been turned on")
         print("Downloading from inputs provided in file at:", config["batch"])
-        if os.path.exists(config['batch']): 
+        if os.path.exists(config['batch']):
             batch = findall(r"\d+", open(config['batch']).read())
-            print("\nDownloading the following ids:", *batch, sep = "\n")
+            print("\nDownloading the following ids:", *batch, sep="\n")
             os.system("pause")
-            #Cleanup
+            # Cleanup
             open('config.txt', 'w').write(sub(r'batch = ".*"', r'batch = ""', f))
-        else: print('Such a file {} does not exist, skipping batch download'.format(config['batch']))
+        else:
+            print('Such a file {} does not exist, skipping batch download'.format(config['batch']))
     print()
     config["batch"] = batch
 
     return dict(config)
 
+
 if __name__ == "__main__":
     # Start program
     print("[ nhentai downloader pdf ]\n")
 
-    #Made a global variable so as to gracefully terminate on KeyboardInterrupt. See below
+    # Made a global variable so as to gracefully terminate on KeyboardInterrupt. See below
     threads = []
 
-    if os.path.exists('config.txt'): config = parse_config()
-    else: 
-        open('config.txt', 'w').write(defaultconfig)
+    if os.path.exists('config.txt'):
         config = parse_config()
-    
+    else:
+        open('config.txt', 'w').write(default_config)
+        config = parse_config()
+
     output_folder = config['path']
     all_temp = os.path.join(output_folder, 'temp')
     history_log = open('history.log', 'a+')
@@ -417,7 +439,7 @@ if __name__ == "__main__":
     exit_event.set()
 
     try:
-        if config['batch']: 
+        if config['batch']:
             get_command(output_folder, all_temp, history_log, config['batch'])
             config['batch'] = None
         else:
