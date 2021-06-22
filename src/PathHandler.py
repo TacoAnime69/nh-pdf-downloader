@@ -1,10 +1,5 @@
-from re import findall, sub
-from PIL import Image
-from lxml import html
 from sys import platform
-from zipfile import ZipFile
-from collections import defaultdict
-import requests, os, shutil, datetime, threading
+import os
 
 if platform == 'win32': import winreg
 

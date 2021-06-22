@@ -1,14 +1,8 @@
-from re import findall, sub
 from PIL import Image
-from lxml import html
-from sys import platform
-from zipfile import ZipFile
-from collections import defaultdict
-
 
 class PDFHandler:
     @staticmethod
-    def save_to_pdf(images, output_path):
+    def save_to_pdf(images: list, output_path):
         converted = []
         for img in images:
             converted.append(img.convert('RGBA').convert('RGB'))

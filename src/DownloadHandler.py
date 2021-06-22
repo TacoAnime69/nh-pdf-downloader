@@ -1,10 +1,6 @@
-from re import findall, sub
 from PIL import Image
 from lxml import html
-from sys import platform
-from zipfile import ZipFile
-from collections import defaultdict
-import requests, os, shutil, datetime, threading
+import requests, os
 
 class DownloadHandler:
     def __init__(self, id_num, file_type: str):

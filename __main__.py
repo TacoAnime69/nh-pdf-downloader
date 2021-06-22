@@ -3,17 +3,14 @@
 
 from re import findall, sub
 from PIL import Image
-from lxml import html
 from sys import platform
 from zipfile import ZipFile
 from collections import defaultdict
-import requests, os, shutil, datetime, threading
+import os, shutil, datetime, threading
 
 from src.DownloadHandler import DownloadHandler
 from src.PathHandler import PathHandler
 from src.PDFHandler import PDFHandler
-
-if platform == 'win32': import winreg
 
 # Do not edit
 default_config = """
