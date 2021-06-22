@@ -1,13 +1,15 @@
 from sys import platform
 from os import path
+import re
 
 if platform == 'win32': import winreg
 
 class PathHandler:
+    #bad_chars = ('*', ':', '?', '.', '"', '|', '/', '\\', '<', '>')
+    bad_chars = re.compile(r'[*:?."|/\\<>]')
     def __init__(self, folder_path: str, temp_path: str, name: str, id_num: int, config: dict):
         self.path_dir = folder_path
         self.__format = config['type']
-        self.bad_chars = ['*', ':', '?', '.', '"', '|', '/', '\\', '<', '>']
         file_name = config["name"].format(Id=id_num, Name=name)
         self.file_name = self.__problem_char_rm(file_name)
         self._final_path = self.__set_path()
@@ -56,8 +58,5 @@ class PathHandler:
         str
             The address with the characters removed
         """
-        result = address
-        for char in self.bad_chars:
-            # go through each character in the set and replace with nothing
-            result = result.replace(char, '')
+        result = PathHandler.bad_chars.sub('', address)
         return result
