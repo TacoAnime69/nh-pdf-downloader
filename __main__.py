@@ -14,27 +14,31 @@ from src.PDFHandler import PDFHandler
 
 # Do not edit
 default_config = """
-#Keys and values are to be provided in a [<key> = "<value>"] format.
-#The spaces, = and the quotes are a must. The line is read and is stored
+# Keys and values are to be provided in a [<key> = "<value>"] format.
+# The spaces, = and the quotes are a must. The line is read and is stored
 # into a config dict as <key>:<value> pairs where both the key and value are strings.
-#Keys may contain only upper/lower english alphabets. Any double quote inside the value 
+# Keys may contain only upper/lower english alphabets. Any double quote inside the value 
 # must preceded by a \\(backslash).
-#If a line starts with a non alphabetic character then that line is considered commented,
+# If a line starts with a non alphabetic character then that line is considered commented,
 # but preferably use # to indicate comments
-#Set file name structure
-#Possible identifiers are {Id}, {Name}. Example: *name = "{Id}-{Name}"* will name the file as its id followed by its name with a "-" in between
+# Set file name structure
+# Possible identifiers are {Id}, {Name}. Example: *name = "{Id}-{Name}"* will name the file as its id followed by its name with a "-" in between
 name = "" 
-#Set Path for output folder, defaults to cwd if left blank. Example: *path = ".\hentai"* means a hentai folder where this file file exists or 
+
+# Set Path for output folder, defaults to cwd if left blank. Example: *path = ".\hentai"* means a hentai folder where this file file exists or 
 # you can just use the absolute filepath
 path = "" 
-#Set Location of text file containing Ids/webpage URLs. Ids must be separated by any delimiter. URLs need nothing
-#It will read the largest consecutive group of numbers as 1 Id hence why Ids must be separated
+
+# Set Location of text file containing Ids/webpage URLs. Ids must be separated by any delimiter. URLs need nothing
+# It will read the largest consecutive group of numbers as 1 Id hence why Ids must be separated
 batch = ""
-#Set how many pages are downloaded at once, defaults to 1 if empty. Strongly do not recommend going above 6 threads
+
+# Set how many pages are downloaded at once, defaults to 1 if empty. Strongly do not recommend going above 6 threads
 threads = ""
-#Sets the file type of the final output. Available types are pdf, cbz, cbt, cbz, img. Case-Sensitive. 
-#img will loosely save the files, i.e save the png files as-is in a folder named after the naming scheme.
-#Defaults to pdf for empty/any other value.
+
+# Sets the file type of the final output. Available types are pdf, cbz, cbt, cbz, img. Case-Sensitive. 
+# img will loosely save the files, i.e save the png files as-is in a folder named after the naming scheme.
+# Defaults to pdf for empty/any other value.
 type = "pdf"
 """
 
