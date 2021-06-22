@@ -6,12 +6,12 @@ if platform == 'win32': import winreg
 
 class PathHandler:
     #bad_chars = ('*', ':', '?', '.', '"', '|', '/', '\\', '<', '>')
-    bad_chars = re.compile(r'[*:?."|/\\<>]')
+    bad_chars = re.compile(r'[*:?."|/\\<>]') # Put bad characters inside the square brackets
     def __init__(self, folder_path: str, temp_path: str, name: str, id_num: int, config: dict):
         self.path_dir = folder_path
         self.__format = config['type']
         file_name = config["name"].format(Id=id_num, Name=name)
-        self.file_name = self.__problem_char_rm(file_name)
+        self.file_name = PathHandler.bad_chars.sub('', file_name)
         self._final_path = self.__set_path()
         self._temp_path = path.join(temp_path, f'temp-{id_num}')
 
@@ -37,26 +37,9 @@ class PathHandler:
         return self._final_path
 
     def rename_path(self, name):
-        self.file_name = self.__problem_char_rm(name)
+        self.file_name = PathHandler.bad_chars.sub('', name)
         self._final_path = self.__set_path()
 
     def __set_path(self):
         if self.__format == 'img': return path.join(f'{self.path_dir}', f'{self.file_name}')
         return path.join(f'{self.path_dir}', f'{self.file_name}.{self.__format}')
-
-    def __problem_char_rm(self, address: str) -> str:
-        """
-        Function to remove problematic characters of a path.
-        Any characters that causes the "windows can't create this path because it 
-        contains illegal characters" should be removed here
-        Parameters
-        ----------
-        address : str
-            The path string
-        Returns
-        -------
-        str
-            The address with the characters removed
-        """
-        result = PathHandler.bad_chars.sub('', address)
-        return result
