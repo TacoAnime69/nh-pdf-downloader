@@ -17,19 +17,18 @@ if platform == 'win32': import winreg
 # Do not edit
 default_config = r"""
 #Keys and values are to be provided in a [<key> = "<value>"] format.
-#The spaces, = and the quotes are a must. The line is read and is stored
-# into a config dict as <key>:<value> pairs where both the key and value are strings.
-#Keys may contain only upper/lower english alphabets. Any double quote inside the value 
-# must preceeded by a \\(backslash).
-#If a line starts with a non alphabetic character then that line is considered commented,
-# but preferably use # to indicate comments
+#   The spaces, = and the quotes are a must. The line is read and is stored into a config dict as <key>:<value> pairs where both the key and value are strings.
+#   Keys may contain only upper/lower english alphabets. Any double quote inside the value must preceded by a \(backslash).
+#   If a line starts with a non alphabetic character then that line is considered commented, but preferably use # to indicate comments
+
+#Very Important Note: The first line should always be a newline if you manually create a config file.
 
 #Set file name structure
-#Possible identifiers are {Id}, {Name}. Example: *name = "{Id}-{Name}"* will name the file as its id followed by its name with a "-" in between
+#   Possible identifiers are {Id}, {Name}. Example: *name = "{Id}-{Name}"* will name the file as its id followed by its name with a "-" in between
 name = "" 
 
-#Set Path for output folder, defaults to %cwd%\hentai if left blank. Example: *path = ".\hentai"* means a hentai folder where this file file exists or 
-# you can just use the absolute filepath
+#Set Path for output folder, defaults to %cwd%\hentai if left blank. Example: *path = ".\hentai"* means a hentai folder 
+#   where this file exists or you can just use the absolute path
 path = "" 
 
 #Set Location of text file containing Ids/webpage URLs. Ids must be separated by any delimiter. URLs need nothing
