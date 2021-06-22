@@ -1,6 +1,10 @@
+from re import findall, sub
 from PIL import Image
 from lxml import html
-import requests, os
+from sys import platform
+from zipfile import ZipFile
+from collections import defaultdict
+import requests, os, shutil, datetime, threading
 
 class DownloadHandler:
     def __init__(self, id_num, file_type: str):
@@ -34,7 +38,7 @@ class DownloadHandler:
         temp_img = open(img_file, 'wb')
         temp_img.write(requests.get(img_link[0]).content)
         temp_img.close()
-        if self.file_type != 'pdf':  # If the Doujin is to be saved as a CBx/unpacked file(s)
+        if self.file_type != 'pdf':  # If the Doujin is to be saved as a CBx file
             Image.open(img_file).save(os.path.join(destination, f"{at_page}.png"))
             img_file = f"{at_page}.png"
         return img_file
@@ -49,4 +53,4 @@ class DownloadHandler:
 
     @property
     def pages(self):
-        return self._pages
+        return self._pages 
