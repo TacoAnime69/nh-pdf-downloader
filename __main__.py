@@ -95,6 +95,7 @@ def show_help():
     print(message)
 
 
+# Process current queue
 def process_queue(dl_queue, output_folder, temp_folder, log):
     for currPos, id_num in enumerate(dl_queue, 1):
         # Create log statement
