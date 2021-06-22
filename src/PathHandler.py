@@ -1,10 +1,5 @@
-from re import findall, sub
-from PIL import Image
-from lxml import html
 from sys import platform
-from zipfile import ZipFile
-from collections import defaultdict
-import requests, os, shutil, datetime, threading
+from os import path
 
 if platform == 'win32': import winreg
 
@@ -16,7 +11,7 @@ class PathHandler:
         file_name = config["name"].format(Id=id_num, Name=name)
         self.file_name = self.__problem_char_rm(file_name)
         self._final_path = self.__set_path()
-        self._temp_path = os.path.join(temp_path, f'temp-{id_num}')
+        self._temp_path = path.join(temp_path, f'temp-{id_num}')
 
     @property
     def valid(self):
@@ -29,7 +24,7 @@ class PathHandler:
 
     @property
     def unique(self):
-        return not os.path.exists(self.final_path)
+        return not path.exists(self.final_path)
 
     @property
     def temp_path(self):
@@ -44,8 +39,8 @@ class PathHandler:
         self._final_path = self.__set_path()
 
     def __set_path(self):
-        if self.__format == 'img': return os.path.join(f'{self.path_dir}', f'{self.file_name}')
-        return os.path.join(f'{self.path_dir}', f'{self.file_name}.{self.__format}')
+        if self.__format == 'img': return path.join(f'{self.path_dir}', f'{self.file_name}')
+        return path.join(f'{self.path_dir}', f'{self.file_name}.{self.__format}')
 
     def __problem_char_rm(self, address: str) -> str:
         """
