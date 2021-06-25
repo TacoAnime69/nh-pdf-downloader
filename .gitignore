@@ -8,3 +8,4 @@ __main__.spec
 history.log
 config.txt
 /src/__pycache__
+console.log

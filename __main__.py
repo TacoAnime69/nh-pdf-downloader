@@ -1,6 +1,7 @@
 # nhentai downloader
 # Date modified: June 20, 2021
 
+from io import TextIOWrapper
 from re import findall, sub
 from PIL import Image
 from sys import platform
@@ -245,7 +246,7 @@ def get_command(output_folder, temp_folder, log, batch=""):
         num_input = findall(r"((?:\d+)|(?:help)|(?:open)|(?:done))", input(input_prompt))
 
 
-def parse_config():
+def parse_config(log: TextIOWrapper):
     f = open('config.txt').read()
 
     # Read into a dict
@@ -253,33 +254,32 @@ def parse_config():
 
     # Name and output folder check
     if config["path"] is None:
-        print("No output path has been set, defaulting to cwd")
+        log.write("No output path has been set, defaulting to cwd")
         config["path"] = os.path.join(os.getcwd(), 'hentai')
     if config["name"] is None:
-        print("No naming structure has been provided, defaulting to id")
+        log.write("No naming structure has been provided, defaulting to id")
         config["name"] = "{Id}"
-    print()
-    print("Output folder is", config["path"])
-    print("File structure is", config["name"], "\n")
+    log.write(f'Output folder is {config["path"]}')
+    log.write(f'File structure is", {config["name"]}')
 
     # File format
     if config['type'] is None or config['type'].lower() not in ('pdf', 'cbt', 'cbz', 'cbr', 'img'):
         config['type'] = 'pdf'
-    print("Doujin will be saved as a", config['type'].upper(), 'file.')
+    log.write(f'Doujin will be saved as a {config["type"].upper()} file.')
 
     # Threads
     if config["threads"] is None:
         config["threads"] = 1
     else:
         config["threads"] = int(config["threads"])
-    print("Threads for downloading:", config["threads"], '\n')
+    log.write(f'Threads for downloading: {config["threads"]}')
 
     # Batch downloading parse + check
     batch = None
     if config["batch"] is None:
-        print("Batch downloading has been turned off")
+        log.write("Batch downloading has been turned off")
     else:
-        print("Batch downloading has been turned on")
+        log.write("Batch downloading has been turned on")
         print("Downloading from inputs provided in file at:", config["batch"])
         if os.path.exists(config['batch']):
             batch = findall(r"\d+", open(config['batch']).read())
@@ -289,7 +289,6 @@ def parse_config():
             open('config.txt', 'w').write(sub(r'batch = ".*"', r'batch = ""', f))
         else:
             print('Such a file {} does not exist, skipping batch download'.format(config['batch']))
-    print()
     config["batch"] = batch
 
     return dict(config)
@@ -297,16 +296,18 @@ def parse_config():
 
 if __name__ == "__main__":
     # Start program
-    print("[ nhentai downloader pdf ]\n")
+    print("[ nhentai downloader ]\n")
 
     # Made a global variable so as to gracefully terminate on KeyboardInterrupt. See below
     threads = []
 
-    if os.path.exists('config.txt'):
-        config = parse_config()
-    else:
+    # Log messages should go to log.
+    log_file = open('console.log', 'w')
+
+    if not os.path.exists('config.txt'):
         open('config.txt', 'w').write(default_config)
-        config = parse_config()
+    config = parse_config(log_file)
+    
 
     output_folder = config['path']
     all_temp = os.path.join(output_folder, 'temp')
