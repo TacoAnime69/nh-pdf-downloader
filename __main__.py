@@ -1,12 +1,11 @@
 # nhentai downloader
-# Date modified: June 20, 2021
+# Date modified: June 30, 2021
 
-from re import findall, sub
 from PIL import Image
 from sys import platform
 from zipfile import ZipFile
 from collections import defaultdict
-import os, shutil, datetime, threading
+import os, shutil, datetime, threading, re
 
 from src.DownloadHandler import DownloadHandler
 from src.PathHandler import PathHandler
@@ -18,22 +17,29 @@ default_config = r"""
 #   The spaces, = and the quotes are a must. The line is read and is stored into a config dict as <key>:<value> pairs where both the key and value are strings.
 #   Keys may contain only upper/lower english alphabets. Any double quote inside the value must preceded by a \(backslash).
 #   If a line starts with a non alphabetic character then that line is considered commented, but preferably use # to indicate comments
-#Very Important Note: The first line should always be a newline if you manually create a config file.
+#   Very Important Note: The first line should always be a newline if you manually create a config file.
+
 #Set file name structure
 #   Possible identifiers are {Id}, {Name}. Example: *name = "{Id}-{Name}"* will name the file as its id followed by its name with a "-" in between
 name = "" 
+
 #Set Path for output folder, defaults to %cwd%\hentai if left blank. Example: *path = ".\hentai"* means a hentai folder 
 #   where this file exists or you can just use the absolute path
 path = "" 
+
 #Set Location of text file containing Ids/webpage URLs. Ids must be separated by any delimiter. URLs need nothing
-#It will read the largest consecutive group of numbers as 1 Id hence why Ids must be separated
+#   It will read the largest consecutive group of numbers as 1 Id hence why Ids must be separated
 batch = ""
-#Set how many pages are downloaded at once, defaults to 1 if empty. Strongly do not recommend going above 6 threads
+
+#Set how many pages are downloaded at once, defaults to 1 if empty. Strongly do not recommend going above 4 threads.
 threads = ""
+
 #Sets the file type of the final output. Available types are pdf, cbz, cbt, cbz, img. Case-Sensitive. 
-#img will loosely save the files, i.e save the png files as-is in a folder named after the naming scheme.
-#Defaults to pdf for empty/any other value.
+#   img will loosely save the files, i.e save the png files as-is in a folder named after the naming scheme.
+#   Defaults to pdf for empty/any other value.
 type = "pdf"
+
+#Parameters below are manually created
 """
 
 def open_folder(folder_path: str):
@@ -81,17 +87,18 @@ def show_help():
                 
             [ Other Options ]
             When prompted, you may enter one of the other commands:
-            - done : this will end execution of the program
-            - help : this will display this text
-            - open : this will open finder/files/file explorer to the
-                     default download folder
+            - done : This will end execution of the program
+            - help : This will display this text
+            - open : This will open finder/files/file explorer to the default download folder
+            - set : This is used to update the value of/add a parameter to the config file from the console itself
+                    Usage: set <config parameter> "<value>"
             [ Threads ]
-            - Set this option in the config file to specify how many pages of the same doujin are to be downloaded at once
+            - Set this option in the config file to specify how many pages of the same doujin are to be downloaded at once.
+            - Do not recommend going above 4 threads.
             [ Type ]
             - Set this option in the config file to specify the file type that the doujins to be saved as(pdf, cbt, cbz, cbt, img i.e unpacked).
             """
     print(message)
-
 
 # Process current queue
 def process_queue(dl_queue, output_folder, temp_folder, log):
@@ -228,12 +235,21 @@ def process_queue(dl_queue, output_folder, temp_folder, log):
             # In case a unicode character cannot be written to history log.
             log.write(f'{log_statement}[SUCCESS] [LOG ERROR] Title could not be recorded due to bad character.\n')
 
+P = re.compile(r'((?:help)|(?:open)|(?:done)|(?:set\s\w+\s".+")|(?:\d+))')
+P_set = re.compile(r'set\s(\w+)\s"(.+)"')
 
 def get_command(output_folder, temp_folder, log, batch=""):
     input_prompt = "Enter ID(s)/webpage URL(s)/Command: "
-    num_input = batch if batch else findall(r"((?:\d+)|(?:help)|(?:open)|(?:done))", input(input_prompt))
+    #Fn used to get input, defaults to ['retry'] if no input is provided
+    get_input = lambda : [i for i in P.findall(input(input_prompt)) if i] or ['retry']
+    num_input = batch if batch else get_input()
     while num_input[0] != "done":
-        if num_input[0] == "open":
+        if P_set.match(num_input[0]): 
+            update_config(num_input[0])
+        elif num_input[0] == 'retry': 
+            num_input = get_input()
+            continue
+        elif num_input[0] == "open":
             open_folder(output_folder)
             print()
         elif num_input[0] == "help":
@@ -242,14 +258,24 @@ def get_command(output_folder, temp_folder, log, batch=""):
             process_queue(num_input, output_folder, temp_folder, log)
         # Ask for more input
         history_log.flush()
-        num_input = findall(r"((?:\d+)|(?:help)|(?:open)|(?:done))", input(input_prompt))
+        num_input = get_input()
 
+def update_config(cmd): #Update existing/add new parameters in config from console using set command
+    cmd = P_set.findall(cmd)[0]
+    f = open('config.txt').read()
+    if re.findall(rf'{cmd[0]} = ".*"', f): #If parameter exists in config.txt, update existing
+        content = re.sub(rf'{cmd[0]} = ".*"', rf'{cmd[0]} = "{cmd[1]}"', f)
+    else: #Otherwise add new parameter
+        content = f + f'\n{cmd[0]} = "{cmd[1]}"'
+    open('config.txt', 'w').write(content)
+    config[cmd[0]] = cmd[1] #Updates value in the already read config variable
+    print('Done Successfully')
 
-def parse_config():
+def parse_config(): #Parse and check parameters in config.txt into a dict called config
     f = open('config.txt').read()
 
     # Read into a dict
-    config = defaultdict(lambda: None, {i: (j or None) for i, j in findall(r'\n([A-Za-z]+) = "(.*)"', f)})
+    config = defaultdict(lambda: None, {i: (j or None) for i, j in re.findall(r'\n([A-Za-z]+) = "(.*)"', f)})
 
     # Name and output folder check
     if config["path"] is None:
@@ -282,15 +308,17 @@ def parse_config():
         print("Batch downloading has been turned on")
         print("Downloading from inputs provided in file at:", config["batch"])
         if os.path.exists(config['batch']):
-            batch = findall(r"\d+", open(config['batch']).read())
+            batch = re.findall(r"\d+", open(config['batch']).read())
             print("\nDownloading the following ids:", *batch, sep="\n")
             os.system("pause")
             # Cleanup
-            open('config.txt', 'w').write(sub(r'batch = ".*"', r'batch = ""', f))
+            open('config.txt', 'w').write(re.sub(r'batch = ".*"', r'batch = ""', f))
         else:
             print('Such a file {} does not exist, skipping batch download'.format(config['batch']))
     print()
     config["batch"] = batch
+
+    #Add manual config parameters checks here
 
     return dict(config)
 
