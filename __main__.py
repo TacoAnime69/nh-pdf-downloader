@@ -2,7 +2,7 @@
 # Date modified: June 30, 2021
 
 from PIL import Image
-from sys import platform
+from sys import path, platform
 from zipfile import ZipFile
 from collections import defaultdict
 import os, shutil, datetime, threading, re
@@ -43,6 +43,9 @@ type = "pdf"
 """
 
 def open_folder(folder_path: str):
+    # Check to see if path exist
+    if not os.path.exists(folder_path):
+        os.mkdir(folder_path)
     if platform == "darwin":
         os.system(f'open {folder_path}/')
     elif platform == "win32":
