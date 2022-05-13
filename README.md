@@ -2,6 +2,8 @@
 > Downloads and coverts any doujin/manga from nhentai to PDF
 
 ## Installation
+#### Ready to Use
+- Download either the rar file or the exe file from releases
 #### Clone
 - Clone this repo to your local machine using ```https://github.com/TacoAnime69/nh-pdf-downloader```
 #### Setup
