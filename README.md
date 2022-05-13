@@ -14,26 +14,26 @@ $ pip3 install -r requirements.txt
 ## Running the Script
 > Navigate to the repo directory on your local machine. Then execute the following:
 ```
-$ python3 __main__.py
+$ python3 Run.py
 ```
 
 ## Build
 > Use Pyinstaller and Anaconda to build
 ```
 $ pip install pyinstaller
-$ pyinstaller __main__.py
+$ pyinstaller --onefile Run.py
 ```
 
 #### Running the build
 _Windows_
 > Navigate to the dist directory ```cd dist\__main__\```
 ```
-$ __main__.exe
+$ Run.exe
 ```
 _MacOS or Linux_
 > Navigate to the dist directory ```cd dist/__main__/```
 ```
-$ __main__.out
+$ Run.out
 ```
 
 ## Usage
@@ -70,10 +70,12 @@ $ __main__.out
 
 [ Other Options ]
     When prompted, you may enter one of the other commands:
-    - done : this will end execution of the program
+    - done : This will end execution of the program. "exit" works as an alternative
     - help : this will display this text
     - open : this will open finder/files/file explorer to the
              default download folder
+	- set  : This is used to update the value of/add a parameter to the config file from the console itself
+			 Usage: set <config parameter> "<value>"
 
 [ Threads ]
     - Set this option in the config file to specify how many pages of the same doujin are to be downloaded at once

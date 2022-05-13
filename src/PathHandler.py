@@ -1,12 +1,12 @@
 from sys import platform
+from re import compile
 from os import path
-import re
 
 if platform == 'win32': import winreg
 
 class PathHandler:
     #bad_chars = ('*', ':', '?', '.', '"', '|', '/', '\\', '<', '>')
-    bad_chars = re.compile(r'[*:?."|/\\<>]') # Put bad characters inside the square brackets
+    bad_chars = compile(r'[*:?."|/\\<>]') # Put bad characters inside the square brackets
     def __init__(self, folder_path: str, temp_path: str, name: str, id_num: int, config: dict):
         self.path_dir = folder_path
         self.__format = config['type']

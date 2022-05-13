@@ -1,6 +1,10 @@
 from PIL import Image
 from lxml import html
+from time import sleep
 import requests, os
+
+session = requests.Session()
+session.trust_env = False
 
 class DownloadHandler:
     def __init__(self, id_num, file_type: str):
@@ -22,11 +26,13 @@ class DownloadHandler:
             # self._valid = False # DEBUG ONLY
         except:
             self._valid = False
-        return
 
     def save_image(self, at_page, destination):
         curr_page = f"https://nhentai.net/g/{self.id_num}/{at_page}/"
         page = requests.get(curr_page)
+        while page.status_code == 429: 
+            sleep(5)
+            page = requests.get(curr_page)
         tree = html.fromstring(page.content)
         img_link = tree.xpath('//section[@id="image-container"]/a/img/@src')
         # Save image to temp folder
